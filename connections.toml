@@ -1,0 +1,7 @@
+[validation]
+#Connection for validating generated templates
+accountname = "XHTGURV-JXB26700"
+username = "HUAYANG"
+password = "Snowflake@2025"
+authenticator = "snowflake"
+accesstoken = "eyJraWQiOiI2NzQ0MDY5NzM1MyIsImFsZyI6IkVTMjU2In0.eyJwIjoiMjYzNDQwMTMyOjI2MzQ0MDEzNiIsImlzcyI6IlNGOjEwNDkiLCJleHAiOjE3ODcyNjg1MDh9.idvEClYP2CDb3BkHbqSptPlHV1owCDQSQBvC_zXGi8xCvVkrbgV0T6jX4vztyExFv2i0Cmi2uOYrBLD_bXabNw"
