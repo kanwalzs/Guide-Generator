@@ -169,7 +169,7 @@ st.set_page_config(page_title="Snowflake Guide Generator", page_icon="❄️", l
 st.markdown(
     """
     <style>
-    .stApp { background-color: #ffffff; }
+    .stApp { background-color: black; }
     h1, h2, h3 { color: #29B5E8 !important; }
     </style>
     """,
