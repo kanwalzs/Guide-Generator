@@ -367,8 +367,8 @@ with st.form("guide_form"):
         steps.append({"title": s_title, "content": s_content})
 
 
-
-    conclusion = st.text_area("Conclusion", height=100)
+    st.conclusion("Conclusion")
+    conclusion = st.text_area("Concluding Statement", height=100)
     resources = st.text_area("Resource links (one per line; optional 'Label | URL')", height=100)
 
     st.subheader("Assets")
