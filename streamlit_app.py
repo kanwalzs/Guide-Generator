@@ -22,21 +22,24 @@ CATEGORIES_FALLBACK = {
 
 IMAGE_CT_RE = re.compile(r"image/(png|jpeg|jpg|gif|svg|webp|bmp|x-icon)", re.I)
 
-def load_template(path="templates/markdown-template.md"):
-    if not os.path.exists(path):
-        return (
-            "author: Author Name\n"
-            "id: example-guide\n"
-            "language: en\n"
-            "summary: Example\n"
-            "categories: snowflake-site:taxonomy/solution-center/certification/quickstart\n"
-            "environments: web\n"
-            "status: Published\n"
-            "feedback link: https://github.com/Snowflake-Labs/sfguides/issues\n"
-            "fork repo link: <repo>\n"
-            "open in snowflake: <deeplink>\n\n"
-            "# Snowflake Guide Template\n\n## Overview\n...\n"
-        )
+def load_template():
+    for path in ("templates/markdown-template.md", "_markdown-template/markdown-template.md"):
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                return f.read()
+    return (
+        "author: Author Name\n"
+        "id: example-guide\n"
+        "language: en\n"
+        "summary: Example\n"
+        "categories: snowflake-site:taxonomy/solution-center/certification/quickstart\n"
+        "environments: web\n"
+        "status: Published\n"
+        "feedback link: https://github.com/Snowflake-Labs/sfguides/issues\n"
+        "fork repo link: <repo>\n"
+        "open in snowflake: <deeplink>\n\n"
+        "# Snowflake Guide Template\n\n## Overview\n...\n"
+    )
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
@@ -170,7 +173,7 @@ st.markdown(
     """
     <style>
     .stApp { background-color: black; }
-    h1, h2, h3 { color: #29B5E8 !important; }
+    h1, h2, h3 { color: #ffffff !important; }
     </style>
     """,
     unsafe_allow_html=True,
