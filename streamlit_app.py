@@ -22,6 +22,7 @@ CATEGORIES_FALLBACK = {
 
 IMAGE_CT_RE = re.compile(r"image/(png|jpeg|jpg|gif|svg|webp|bmp|x-icon)", re.I)
 
+
 def load_template():
     for path in ("templates/markdown-template.md", "_markdown-template/markdown-template.md"):
         if os.path.exists(path):
@@ -40,19 +41,7 @@ def load_template():
         "open in snowflake: <deeplink>\n\n"
         "# Snowflake Guide Template\n\n## Overview\n...\n"
     )
-    with open(path, "r", encoding="utf-8") as f:
-        return f.read()
 
-def inject_metadata(template_text, meta):
-    def repl(txt, key, value):
-        pat = re.compile(rf"^{re.escape(key)}:\s*.*$", re.M)
-        if pat.search(txt):
-            return pat.sub(f"{key}: {value}", txt)
-        return f"{key}: {value}\n{txt}"
-    text = template_text
-    for k, v in meta.items():
-        text = repl(text, k, v)
-    return text
 
 def validate_markdown(md_text, guide_id):
     issues = []
@@ -78,9 +67,11 @@ def validate_markdown(md_text, guide_id):
             issues.append('categories must be comma-separated taxonomy paths (e.g., snowflake-site:taxonomy/solution-center/certification/quickstart)')
     return issues
 
+
 def sanitize_filename(name):
     base = os.path.basename(name)
     return re.sub(r"[^a-z0-9_.]", "", base.lower().replace("-", "_"))
+
 
 def write_guide_tree(base_dir, guide_id, md_text, image_files, other_files, url_files):
     guide_dir = os.path.join(base_dir, "site", "sfguides", "src", guide_id)
@@ -140,6 +131,7 @@ def write_guide_tree(base_dir, guide_id, md_text, image_files, other_files, url_
 
     return guide_dir, saved
 
+
 def zipdir(path):
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
@@ -150,15 +142,8 @@ def zipdir(path):
                 zf.write(full, rel)
     buf.seek(0)
     return buf
-def list_ai_inputs(base="new-template-form-inputs"):
-    md_files = []
-    if os.path.isdir(base):
-        for root, _, files in os.walk(base):
-            for f in files:
-                if f.lower().endswith(".md"):
-                    md_files.append(os.path.join(root, f))
-    return sorted(md_files)
-    
+
+
 def fetch_category_map():
     # Try to scrape taxonomy paths from the referenced doc; fallback if anything fails
     try:
@@ -174,6 +159,7 @@ def fetch_category_map():
         return mapping or CATEGORIES_FALLBACK
     except Exception:
         return CATEGORIES_FALLBACK
+
 
 def build_guide_markdown(meta, sections):
     # Metadata block at top (kept within first 50 lines for CI)
@@ -197,7 +183,7 @@ def build_guide_markdown(meta, sections):
     res_lines = []
     for line in (sections.get("resources") or "").splitlines():
         line = line.strip()
-        if not line: 
+        if not line:
             continue
         if " | " in line:
             label, url = [p.strip() for p in line.split(" | ", 1)]
@@ -209,7 +195,9 @@ def build_guide_markdown(meta, sections):
     for idx, step in enumerate(sections.get("steps") or [], start=1):
         title = step.get("title", "").strip() or f"Step {idx}"
         content = step.get("content", "").strip()
-        steps_md.append(f"## Step {idx}: {title}\n\n{content}\n")
+        steps_md.append(f"## Step {idx}: {title}\n\n{content}")
+    process_block = "\n\n".join(steps_md)
+
     body = []
     body.append(f"# {sections.get('title') or 'Snowflake Guide'}\n")
     body.append("## Overview\n" + (sections.get("overview") or "").strip() + "\n")
@@ -219,7 +207,7 @@ def build_guide_markdown(meta, sections):
         body.append("### What You’ll Need\n" + "\n".join(wn) + "\n")
     if sections.get("build"):
         body.append("### What You’ll Build\n" + sections["build"].strip() + "\n")
-    body.append("## Process\n" + ("\n".join(steps_md) if steps_md else ""))
+    body.append("## Process\n" + (f"{process_block}\n" if process_block else ""))
     if sections.get("conclusion") or res_lines:
         body.append("## Conclusion And Resources\n")
         if sections.get("conclusion"):
@@ -229,10 +217,20 @@ def build_guide_markdown(meta, sections):
     return "\n".join(header + body)
 
 
-# Theming (white bg, Snowflake Blue headings)
+def list_ai_inputs(base="new-template-form-inputs"):
+    md_files = []
+    if os.path.isdir(base):
+        for root, _, files in os.walk(base):
+            for f in files:
+                if f.lower().endswith(".md"):
+                    md_files.append(os.path.join(root, f))
+    return sorted(md_files)
+
+
+# Theming (black bg, light grey text; white inputs with black text)
 st.set_page_config(page_title="Snowflake Guide Generator", page_icon="❄️", layout="centered")
 st.markdown(
-       """
+    """
     <style>
       :root {
         --bg: #000000;            /* Black app background */
@@ -242,19 +240,13 @@ st.markdown(
         --accent: #29B5E8;        /* Snowflake Blue for headings/links */
       }
 
-      /* App background and default text */
       .stApp { background: var(--bg); color: var(--text-light); }
-
-      /* Headings stay Snowflake Blue */
       h1, h2, h3 { color: var(--accent) !important; }
-
-      /* General content on dark background -> light grey */
       body, p, li, span, label, [data-testid="stMarkdownContainer"] {
         color: var(--text-light) !important;
       }
       a { color: var(--accent) !important; }
 
-      /* Inputs/selects/dropdowns -> white background with black text */
       input, textarea, select {
         background-color: var(--white) !important;
         color: var(--text-dark) !important;
@@ -262,7 +254,6 @@ st.markdown(
       }
       option { color: var(--text-dark) !important; }
 
-      /* Streamlit select/multiselect internals */
       .stSelectbox div[role="combobox"],
       .stSelectbox div[data-baseweb="select"] input,
       .stMultiSelect div[role="combobox"],
@@ -272,7 +263,6 @@ st.markdown(
       }
       ul[role="listbox"] li { color: var(--text-dark) !important; }
 
-      /* Text/number areas outer shells */
       .stTextInput > div > div,
       .stTextArea > div > div,
       .stNumberInput > div > div {
@@ -284,13 +274,11 @@ st.markdown(
         color: var(--text-dark) !important;
       }
 
-      /* File uploader box */
       [data-testid="stFileUploader"] section div {
         background-color: var(--white) !important;
         color: var(--text-dark) !important;
       }
 
-      /* Buttons (optional) */
       .stButton>button, .stDownloadButton>button {
         background-color: var(--accent) !important;
         color: var(--bg) !important;
@@ -345,17 +333,17 @@ with st.form("guide_form"):
     need = st.text_area("What You’ll Need (one per line)", height=100)
     build_txt = st.text_input("What You’ll Build", placeholder="Describe the final outcome")
 
-    step_count = st.number_input("Number of steps", min_value=1, max_value=20, value=3, step=1)
+    step_count = int(st.number_input("Number of steps", min_value=1, max_value=20, value=3, step=1))
     steps = []
+    key_prefix = f"{guide_id or 'guide'}"
     for i in range(step_count):
         st.markdown(f"#### Step {i+1}")
-        s_title = st.text_input(f"Step {i+1} title", key=f"step_title_{i}")
-        s_content = st.text_area(f"Step {i+1} content", key=f"step_content_{i}", height=140)
+        s_title = st.text_input(f"Step {i+1} title", key=f"{key_prefix}_step_title_{i}")
+        s_content = st.text_area(f"Step {i+1} content", key=f"{key_prefix}_step_content_{i}", height=140)
         steps.append({"title": s_title, "content": s_content})
 
     conclusion = st.text_area("Conclusion", height=100)
     resources = st.text_area("Resource links (one per line; optional 'Label | URL')", height=100)
-
 
     st.subheader("Assets")
     image_uploads = st.file_uploader(
@@ -385,25 +373,27 @@ if submitted:
         "id": guide_id,
         "language": language,
         "summary": summary or "This is a sample Snowflake Guide",
-        "categories": categories_final,  # <-- use computed categories
+        "categories": categories_final,
         "environments": environments or "web",
         "status": status,
         "feedback": feedback,
         "fork_repo": fork_repo,
         "open_in": open_in
     }
+    # remove completely empty steps; keep all others
+    steps_filtered = [s for s in steps if (s.get("title","").strip() or s.get("content","").strip())]
     sections = {
         "title": guide_title,
         "overview": overview,
         "learn": learn,
         "need": need,
         "build": build_txt,
-        "steps": steps,
+        "steps": steps_filtered,
         "conclusion": conclusion,
         "resources": resources
     }
     md = build_guide_markdown(meta, sections)
-    
+
     issues = validate_markdown(md, guide_id)
     if issues:
         st.warning("Validation issues (key CI checks):\n- " + "\n- ".join(issues))
@@ -426,8 +416,6 @@ if submitted:
 
 st.info("Next: unzip into your guide repo at site/sfguides/src/<guide-id>/, open PR, and let CI validate.")
 
-
-
 st.divider()
 with st.expander("AI draft (optional)", expanded=False):
     ai_files = list_ai_inputs()
@@ -439,7 +427,6 @@ with st.expander("AI draft (optional)", expanded=False):
         if run_ai:
             try:
                 import subprocess, shlex
-                # Use current guide_id if provided; otherwise a placeholder
                 template_id = guide_id if guide_id else "preview-id"
                 cmd = f'sf ai claude -- --dangerously-skip-permissions -p "Follow instructions from prompts/new-template-generation.md to generate a new template (template id: {template_id}) for the user inputs in {ai_choice}" --verbose --output-format stream-json'
                 output = subprocess.check_output(shlex.split(cmd), stderr=subprocess.STDOUT, timeout=300)
