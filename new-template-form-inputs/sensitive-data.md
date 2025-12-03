@@ -1,6 +1,6 @@
 # High-level idea
 
-This template should teach users how to work with Sensitive data classification in Snowflake. Make a fake story of the background to make it feel real.
+This template should teach users how to work with Sensitive data classification in Snowflake. Make a fake story of the background to make it feel real. ensure that the passwords, if created, are obviously fake and do not trigger any security issues.
 
 # Feature details & references
 
