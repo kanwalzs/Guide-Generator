@@ -233,13 +233,14 @@ st.markdown(
     """
     <style>
       :root {
-        --bg: #000000;            /* Black app background */
-        --text-light: #beedf7;    /* Light blue for dark bg */
-        --text-dark: #111827;     /* Nearly black for white bg */
+        --bg: #000000;            /* App background */
+        --text-light: #E5E7EB;    /* Light grey on dark bg */
+        --text-dark: #111827;     /* Near-black on white bg */
         --white: #ffffff;
-        --accent: #29B5E8;        /* Snowflake Blue for headings/links */
+        --accent: #29B5E8;        /* Snowflake Blue */
       }
 
+      /* Base layout */
       .stApp { background: var(--bg); color: var(--text-light); }
       h1, h2, h3 { color: var(--accent) !important; }
       body, p, li, span, label, [data-testid="stMarkdownContainer"] {
@@ -247,60 +248,66 @@ st.markdown(
       }
       a { color: var(--accent) !important; }
 
-      input, textarea, select {
-        background-color: var(--white) !important;
-        color: var(--text-dark) !important;
-        border-color: #DFE3E8 !important;
-      }
-      option { color: var(--text-dark) !important; }
-
-      .stSelectbox div[role="combobox"],
-      .stSelectbox div[data-baseweb="select"] input,
-      .stMultiSelect div[role="combobox"],
-      .stMultiSelect div[data-baseweb="select"] input {
-        background-color: var(--white) !important;
-        color: var(--text-dark) !important;
-      }
-      ul[role="listbox"] li { color: var(--text-dark) !important; }
-
+      /* Text inputs/areas: white bg, dark text */
       .stTextInput > div > div,
-      .stTextArea > div > div,
+      .stTextArea  > div > div,
       .stNumberInput > div > div {
         background-color: var(--white) !important;
       }
       .stTextInput input,
-      .stTextArea textarea,
+      .stTextArea  textarea,
       .stNumberInput input {
         color: var(--text-dark) !important;
+        background-color: var(--white) !important;
+        border-color: #DFE3E8 !important;
       }
 
+      /* File uploader: white bg, dark text */
       [data-testid="stFileUploader"] section div {
         background-color: var(--white) !important;
         color: var(--text-dark) !important;
       }
 
+      /* Buttons */
       .stButton>button, .stDownloadButton>button {
         background-color: var(--accent) !important;
         color: var(--bg) !important;
         border: none !important;
       }
-            /* Product select: darker text everywhere */
-      .stSelectbox div[role="combobox"],
-      .stSelectbox [data-baseweb="select"] *,
-      .stMultiSelect div[role="combobox"],
-      .stMultiSelect [data-baseweb="select"] * {
 
+      /* SELECT/MULTISELECT: FORCE DARKER TEXT */
+
+      /* Combobox (visible value/placeholder) */
+      .stSelectbox div[role="combobox"],
+      .stMultiSelect div[role="combobox"] {
+        background: var(--white) !important;
+        color: var(--text-dark) !important;
       }
 
-      /* Placeholder color inside the select input */
+      /* BaseWeb select internals: make every descendant dark */
+      .stSelectbox [data-baseweb="select"] *,
+      .stMultiSelect [data-baseweb="select"] * {
+        color: var(--text-dark) !important;
+      }
+
+      /* Input element inside select combobox */
+      .stSelectbox [data-baseweb="select"] input,
+      .stMultiSelect [data-baseweb="select"] input {
+        color: var(--text-dark) !important;
+        background: var(--white) !important;
+      }
+
+      /* Placeholder inside select */
       .stSelectbox input::placeholder,
       .stMultiSelect input::placeholder {
         color: var(--text-dark) !important;
         opacity: 1 !important;
       }
 
-      /* Dropdown menu items */
-      ul[role="listbox"], ul[role="listbox"] li, ul[role="listbox"] li * {
+      /* Dropdown menu and items */
+      ul[role="listbox"],
+      ul[role="listbox"] li,
+      ul[role="listbox"] li * {
         background: var(--white) !important;
         color: var(--text-dark) !important;
       }
