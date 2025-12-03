@@ -334,7 +334,7 @@ with st.form("guide_form"):
     st.subheader("Metadata")
     guide_id = st.text_input("Guide ID (folder and filename, hyphen-case)", placeholder="intro-to-cortex").strip()
     author = st.text_input("Author", placeholder="First Last").strip()
-    language = st.selectbox("Language", ALLOWED_LANGS, index=0)
+    language = st.selectbox("Language", ALLOWED_LANGS, index=ALLOWED_LANGS.index("en"))
     summary = st.text_input("Summary (1 sentence)", placeholder="This is a sample Snowflake Guide").strip()
 
     # Multi-select products -> auto-fill taxonomy paths (comma-separated)
