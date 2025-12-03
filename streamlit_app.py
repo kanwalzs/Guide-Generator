@@ -395,7 +395,7 @@ if submitted:
         "resources": resources
     }
     md = build_guide_markdown(meta, sections)
-    
+
     issues = validate_markdown(md, guide_id)
     if issues:
         st.warning("Validation issues (key CI checks):\n- " + "\n- ".join(issues))
@@ -417,3 +417,19 @@ if submitted:
         )
 
 st.info("Next: unzip into your guide repo at site/sfguides/src/<guide-id>/, open PR, and let CI validate.")
+
+
+# Optional: AI draft (advanced; requires 'sf ai' installed and logged in)
+# Place in the form near "Guide Content"
+use_ai = st.checkbox("Draft with AI using prompts/new-template-generation.md (requires 'sf ai')", value=False)
+ai_input_path = st.text_input("AI Input file path (e.g., new-template-form-inputs/data-quality-monitor.md)", disabled=not use_ai).strip()
+if submitted and use_ai and ai_input_path:
+    import subprocess, shlex
+    try:
+        cmd = f'sf ai claude -- --dangerously-skip-permissions -p "Follow instructions from prompts/new-template-generation.md to generate a new template (template id: {guide_id}) for the user inputs in {ai_input_path}" --verbose'
+        st.caption("Running AI draft...")
+        out = subprocess.check_output(shlex.split(cmd), stderr=subprocess.STDOUT, timeout=120)
+        # You can parse 'out' and prefill overview/steps if desired.
+        st.success("AI draft completed. Review output and paste into the fields above.")
+    except Exception as e:
+        st.warning(f"AI draft failed: {e}")
