@@ -2,7 +2,9 @@ import streamlit as st
 import os, io, re, tempfile, zipfile, requests
 from datetime import datetime
 from urllib.parse import urlparse
-from bs4 import BeautifulSoup
+
+# Reference: Language and Category Tags
+# https://www.snowflake.com/en/developers/guides/get-started-with-guides/#language-and-category-tags
 
 ALLOWED_LANGS = ["en","es","it","fr","de","ja","ko","pt_br"]
 CATEGORIES_SOURCE_URL = "https://www.snowflake.com/en/developers/guides/get-started-with-guides/#language-and-category-tags"
@@ -12,11 +14,13 @@ CATEGORIES_FALLBACK = {
     "Quickstart": "snowflake-site:taxonomy/solution-center/certification/quickstart",
     "Snowflake Cortex": "snowflake-site:taxonomy/products/snowflake-cortex",
     "Snowpark": "snowflake-site:taxonomy/products/snowpark",
-    "Streamlit in Snowflake": "snowflake-site:taxonomy/products/streamlit-in-snowflake",
+    "Streamlit In Snowflake": "snowflake-site:taxonomy/products/streamlit-in-snowflake",
     "Iceberg Tables": "snowflake-site:taxonomy/products/iceberg-tables",
     "Snowpipe Streaming": "snowflake-site:taxonomy/products/snowpipe-streaming",
     "Native Apps": "snowflake-site:taxonomy/products/native-apps",
 }
+
+IMAGE_CT_RE = re.compile(r"image/(png|jpeg|jpg|gif|svg|webp|bmp|x-icon)", re.I)
 
 def load_template(path="templates/markdown-template.md"):
     if not os.path.exists(path):
@@ -49,19 +53,26 @@ def inject_metadata(template_text, meta):
 
 def validate_markdown(md_text, guide_id):
     issues = []
+    # language within first 50 lines and allowed
     first_50 = "\n".join(md_text.splitlines()[:50])
     m = re.search(r"^\s*language:\s*(.+)$", first_50, re.M)
     lang = m.group(1).strip().strip("'\"") if m else ""
     if not lang or lang.lower() not in ALLOWED_LANGS:
         issues.append(f'language must be one of {ALLOWED_LANGS} and in first 50 lines (found "{lang}")')
+    # id matches guide_id
     m = re.search(r"^\s*id:\s*(.+)$", md_text, re.M)
     md_id = m.group(1).strip() if m else ""
     if md_id != guide_id:
         issues.append(f'id must match folder/file name "{guide_id}" (found "{md_id}")')
+    # categories: allow comma-separated taxonomy paths
     m = re.search(r"^\s*categories:\s*(.+)$", md_text, re.M)
-    cats = m.group(1).strip() if m else ""
-    if not cats or "snowflake-site:taxonomy/" not in cats:
-        issues.append('categories must be a valid taxonomy path (ex: snowflake-site:taxonomy/solution-center/certification/quickstart)')
+    cats_line = m.group(1).strip() if m else ""
+    if not cats_line:
+        issues.append('categories must be set (comma-separated taxonomy paths)')
+    else:
+        paths = [c.strip() for c in cats_line.split(",") if c.strip()]
+        if not paths or any(not p.startswith("snowflake-site:taxonomy/") for p in paths):
+            issues.append('categories must be comma-separated taxonomy paths (e.g., snowflake-site:taxonomy/solution-center/certification/quickstart)')
     return issues
 
 def sanitize_filename(name):
@@ -79,7 +90,9 @@ def write_guide_tree(base_dir, guide_id, md_text, image_files, other_files, url_
 
     # Images (<= 1MB)
     for up in image_files or []:
-        if not up.type or not re.search(r"image/(png|jpeg|jpg|gif|svg|webp|bmp|x-icon)", up.type, re.I):
+        # accept by content-type or extension
+        is_image = (up.type and IMAGE_CT_RE.search(up.type)) or re.search(r"\.(png|jpe?g|gif|svg|webp|bmp|ico)$", up.name.lower())
+        if not is_image:
             continue
         data = up.getvalue()
         if len(data) > 1_000_000:
@@ -90,7 +103,7 @@ def write_guide_tree(base_dir, guide_id, md_text, image_files, other_files, url_
             f.write(data)
         saved.append(("assets/" + name, len(data)))
 
-    # Additional files (any type), cap at 10MB
+    # Additional files (any type), cap at 10MB, skip .md
     for up in other_files or []:
         data = up.getvalue()
         if len(data) > 10_000_000:
@@ -103,7 +116,7 @@ def write_guide_tree(base_dir, guide_id, md_text, image_files, other_files, url_
             f.write(data)
         saved.append(("assets/" + name, len(data)))
 
-    # URL downloads (any type), cap at 10MB
+    # URL downloads (any type), cap at 10MB, skip .md
     for url in url_files or []:
         try:
             r = requests.get(url, timeout=10, stream=True)
@@ -147,17 +160,16 @@ def fetch_category_map():
             # Use last segment as label; title-case for display
             label = p.split("/")[-1].replace("-", " ").title()
             mapping[label] = p
-        # Ensure we at least have something useful
         return mapping or CATEGORIES_FALLBACK
     except Exception:
         return CATEGORIES_FALLBACK
 
-# Page theming (white bg, Snowflake Blue headings)
+# Theming (white bg, Snowflake Blue headings)
 st.set_page_config(page_title="Snowflake Guide Generator", page_icon="❄️", layout="centered")
 st.markdown(
     """
     <style>
-    .stApp { background-color: #000000; }
+    .stApp { background-color: #ffffff; }
     h1, h2, h3 { color: #29B5E8 !important; }
     </style>
     """,
@@ -165,7 +177,7 @@ st.markdown(
 )
 st.markdown('<h1>Snowflake Guide Generator</h1>', unsafe_allow_html=True)
 
-# Preload data
+# Preload categories
 categories_map = fetch_category_map()
 product_names = sorted(categories_map.keys())
 
@@ -176,11 +188,22 @@ with st.form("guide_form"):
     language = st.selectbox("Language", ALLOWED_LANGS, index=0)
     summary = st.text_input("Summary (1 sentence)", placeholder="This is a sample Snowflake Guide").strip()
 
-    # Product picker -> auto-fill taxonomy path into categories
-    product = st.selectbox("Product (auto-fills the taxonomy path below)", product_names, index=0 if product_names else None)
-    auto_categories = categories_map.get(product, CATEGORIES_FALLBACK["Quickstart"])
+    # Multi-select products -> auto-fill taxonomy paths (comma-separated)
+    default_products = [product_names[0]] if product_names else []
+    selected_products = st.multiselect(
+        "Products (choose one or more; auto-fills taxonomy paths)",
+        product_names,
+        default=default_products
+    )
+    auto_categories_list = [categories_map[p] for p in selected_products] if selected_products else [CATEGORIES_FALLBACK["Quickstart"]]
+    auto_categories = ", ".join(auto_categories_list)
     override = st.checkbox("Override categories (advanced)", value=False)
-    categories = st.text_input("Categories (taxonomy path)", value=auto_categories, disabled=not override).strip()
+    categories_input = st.text_input(
+        "Categories (taxonomy paths, comma-separated)",
+        value=auto_categories,
+        disabled=not override
+    ).strip()
+    categories_final = categories_input if override else auto_categories
 
     # Status (no 'Hidden')
     status = st.selectbox("Status", ["Published", "Archived"], index=0)
@@ -203,6 +226,7 @@ with st.form("guide_form"):
         "Additional asset URLs (one per line; downloaded into assets/, ≤ 10MB each)",
         placeholder="https://example.com/file.csv\nhttps://example.com/archive.zip"
     )
+
     submitted = st.form_submit_button("Generate Guide")
 
 if submitted:
@@ -216,7 +240,7 @@ if submitted:
         "id": guide_id,
         "language": language,
         "summary": summary or "This is a sample Snowflake Guide",
-        "categories": categories or auto_categories,
+        "categories": categories_final,
         "environments": environments or "web",
         "status": status,
         "feedback link": feedback,
