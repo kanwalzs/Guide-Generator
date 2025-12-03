@@ -418,12 +418,3 @@ if submitted:
 
 st.info("Next: unzip into your guide repo at site/sfguides/src/<guide-id>/, open PR, and let CI validate.")
 
-
-def list_ai_inputs(base="new-template-form-inputs"):
-    md_files = []
-    if os.path.isdir(base):
-        for root, _, files in os.walk(base):
-            for f in files:
-                if f.lower().endswith(".md"):
-                    md_files.append(os.path.join(root, f))
-    return sorted(md_files)
