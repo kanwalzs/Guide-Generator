@@ -170,39 +170,68 @@ def fetch_category_map():
 # Theming (white bg, Snowflake Blue headings)
 st.set_page_config(page_title="Snowflake Guide Generator", page_icon="❄️", layout="centered")
 st.markdown(
-   """
+       """
     <style>
       :root {
-        --bg: #0B1220;           /* Dark background */
+        --bg: #000000;            /* Black app background */
         --text-light: #E5E7EB;    /* Light grey for dark bg */
         --text-dark: #111827;     /* Nearly black for white bg */
         --white: #ffffff;
-        --accent: #29B5E8;       /* Snowflake Blue */
-        --input-bg: #0F172A; 
-        --border: #1F2937;
+        --accent: #29B5E8;        /* Snowflake Blue for headings/links */
       }
-      .stApp { background-color: var(--bg); color: var(--text-primary); }
 
-      /* Headings */
+      /* App background and default text */
+      .stApp { background: var(--bg); color: var(--text-light); }
+
+      /* Headings stay Snowflake Blue */
       h1, h2, h3 { color: var(--accent) !important; }
 
-      /* General text */
-      body, p, li, span, div, label, [data-testid="stMarkdownContainer"] {
-        color: var(--text-secondary) !important;
+      /* General content on dark background -> light grey */
+      body, p, li, span, label, [data-testid="stMarkdownContainer"] {
+        color: var(--text-light) !important;
       }
       a { color: var(--accent) !important; }
 
-      /* Inputs and textareas */
+      /* Inputs/selects/dropdowns -> white background with black text */
       input, textarea, select {
-        color: var(--text-primary) !important;
-        background-color: var(--input-bg) !important;
-        border-color: var(--border) !important;
+        background-color: var(--white) !important;
+        color: var(--text-dark) !important;
+        border-color: #DFE3E8 !important;
+      }
+      option { color: var(--text-dark) !important; }
+
+      /* Streamlit select/multiselect internals */
+      .stSelectbox div[role="combobox"],
+      .stSelectbox div[data-baseweb="select"] input,
+      .stMultiSelect div[role="combobox"],
+      .stMultiSelect div[data-baseweb="select"] input {
+        background-color: var(--white) !important;
+        color: var(--text-dark) !important;
+      }
+      ul[role="listbox"] li { color: var(--text-dark) !important; }
+
+      /* Text/number areas outer shells */
+      .stTextInput > div > div,
+      .stTextArea > div > div,
+      .stNumberInput > div > div {
+        background-color: var(--white) !important;
+      }
+      .stTextInput input,
+      .stTextArea textarea,
+      .stNumberInput input {
+        color: var(--text-dark) !important;
       }
 
-      /* Buttons */
+      /* File uploader box */
+      [data-testid="stFileUploader"] section div {
+        background-color: var(--white) !important;
+        color: var(--text-dark) !important;
+      }
+
+      /* Buttons (optional) */
       .stButton>button, .stDownloadButton>button {
         background-color: var(--accent) !important;
-        color: #0B1220 !important;
+        color: var(--bg) !important;
         border: none !important;
       }
     </style>
