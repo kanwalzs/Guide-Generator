@@ -290,12 +290,7 @@ st.markdown(
 )
 st.markdown('<h1>Snowflake Guide Generator</h1>', unsafe_allow_html=True)
 
-# Preload categories
-categories_map = fetch_category_map()
-product_names = sorted(categories_map.keys())
-
-
-# Controls outside the form so changing the value re-runs and updates fields
+# Controls outside the form so changes re-render step fields immediately
 st.subheader("Process steps")
 st.caption("Change the number to add/remove step fields below.")
 st.number_input(
@@ -303,6 +298,10 @@ st.number_input(
     min_value=1, max_value=20, value=int(st.session_state.get("step_count", 3)),
     step=1, key="step_count"
 )
+
+# Preload categories
+categories_map = fetch_category_map()
+product_names = sorted(categories_map.keys())
 
 with st.form("guide_form"):
     st.subheader("Metadata")
@@ -335,23 +334,24 @@ with st.form("guide_form"):
     fork_repo = st.text_input("Fork repo link", value="<repo>").strip()
     open_in = st.text_input("Open in Snowflake", value="<deeplink or remove>").strip()
 
-    st.subheader("Guide Content")
-    guide_title = st.text_input("Guide Title (H1)", placeholder="Getting Started with ...").strip()
-    overview = st.text_area("Overview", height=140)
+    # Use the externally-controlled step count to render fields
+    sc = int(st.session_state.get("step_count", 3))
+    steps = []
+    key_prefix = f"{guide_id or 'guide'}"
+    for i in range(sc):
+        st.markdown(f"#### Step {i+1}")
+        s_title = st.text_input(f"Step {i+1} title", key=f"{key_prefix}_step_title_{i}")
+        s_content = st.text_area(f"Step {i+1} content", key=f"{key_prefix}_step_content_{i}", height=140)
+        steps.append({"title": s_title, "content": s_content})
 
-    learn = st.text_area("What You’ll Learn (one per line)", height=100)
-    need = st.text_area("What You’ll Need (one per line)", height=100)
-    build_txt = st.text_input("What You’ll Build", placeholder="Describe the final outcome")
-
-# Use the externally-controlled step count to render fields
-sc = int(st.session_state.get("step_count", 3))
-steps = []
-key_prefix = f"{guide_id or 'guide'}"
-for i in range(sc):
-    st.markdown(f"#### Step {i+1}")
-    s_title = st.text_input(f"Step {i+1} title", key=f"{key_prefix}_step_title_{i}")
-    s_content = st.text_area(f"Step {i+1} content", key=f"{key_prefix}_step_content_{i}", height=140)
-    steps.append({"title": s_title, "content": s_content})
+    step_count = int(st.number_input("Number of steps", min_value=1, max_value=20, value=3, step=1))
+    steps = []
+    key_prefix = f"{guide_id or 'guide'}"
+    for i in range(step_count):
+        st.markdown(f"#### Step {i+1}")
+        s_title = st.text_input(f"Step {i+1} title", key=f"{key_prefix}_step_title_{i}")
+        s_content = st.text_area(f"Step {i+1} content", key=f"{key_prefix}_step_content_{i}", height=140)
+        steps.append({"title": s_title, "content": s_content})
 
     conclusion = st.text_area("Conclusion", height=100)
     resources = st.text_area("Resource links (one per line; optional 'Label | URL')", height=100)
@@ -425,7 +425,7 @@ if submitted:
             mime="application/zip"
         )
 
-st.info("Next: unzip into your fork of the sfguides repo at site/sfguides/src/<guide-id>/, modify or update the markdown file as needed, open PR, and submit.  Your guide goes through some validation basic checks which are built into this generator as well!")
+st.info("Next: unzip into your fork of the sfguides repo at site/sfguides/src/<guide-id>/, modify or update the markdown file as needed, open PR, and submit.  Your guide goes through some validation basic checks which are built in.")
 
 st.divider()
 with st.expander("AI draft (optional)", expanded=False):
