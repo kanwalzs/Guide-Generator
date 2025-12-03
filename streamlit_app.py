@@ -150,7 +150,15 @@ def zipdir(path):
                 zf.write(full, rel)
     buf.seek(0)
     return buf
-
+def list_ai_inputs(base="new-template-form-inputs"):
+    md_files = []
+    if os.path.isdir(base):
+        for root, _, files in os.walk(base):
+            for f in files:
+                if f.lower().endswith(".md"):
+                    md_files.append(os.path.join(root, f))
+    return sorted(md_files)
+    
 def fetch_category_map():
     # Try to scrape taxonomy paths from the referenced doc; fallback if anything fails
     try:
@@ -371,13 +379,13 @@ if submitted:
         st.error("Guide ID required (lowercase letters/numbers with hyphens).")
         st.stop()
 
-     # Build full guide markdown (not just a template)
+    # Build full guide markdown (not just a template)
     meta = {
         "author": author or "First Last",
         "id": guide_id,
         "language": language,
         "summary": summary or "This is a sample Snowflake Guide",
-        "categories": categories or auto_categories,
+        "categories": categories_final,  # <-- use computed categories
         "environments": environments or "web",
         "status": status,
         "feedback": feedback,
@@ -395,7 +403,7 @@ if submitted:
         "resources": resources
     }
     md = build_guide_markdown(meta, sections)
-
+    
     issues = validate_markdown(md, guide_id)
     if issues:
         st.warning("Validation issues (key CI checks):\n- " + "\n- ".join(issues))
@@ -418,3 +426,26 @@ if submitted:
 
 st.info("Next: unzip into your guide repo at site/sfguides/src/<guide-id>/, open PR, and let CI validate.")
 
+
+
+st.divider()
+with st.expander("AI draft (optional)", expanded=False):
+    ai_files = list_ai_inputs()
+    if not ai_files:
+        st.caption("No input files found under new-template-form-inputs/")
+    else:
+        ai_choice = st.selectbox("Select input file for AI draft", ai_files, index=0, key="ai_choice")
+        run_ai = st.button("Run AI draft with selected input")
+        if run_ai:
+            try:
+                import subprocess, shlex
+                # Use current guide_id if provided; otherwise a placeholder
+                template_id = guide_id if guide_id else "preview-id"
+                cmd = f'sf ai claude -- --dangerously-skip-permissions -p "Follow instructions from prompts/new-template-generation.md to generate a new template (template id: {template_id}) for the user inputs in {ai_choice}" --verbose --output-format stream-json'
+                output = subprocess.check_output(shlex.split(cmd), stderr=subprocess.STDOUT, timeout=300)
+                text = output.decode("utf-8", errors="replace")
+                st.success("AI draft completed. Raw output shown below.")
+                st.text_area("AI output (stream-json)", text, height=240)
+                st.info("Copy useful content into the fields above, or add parsing to auto-fill.")
+            except Exception as e:
+                st.error(f"AI draft failed: {e}")
