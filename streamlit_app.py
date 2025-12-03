@@ -167,6 +167,60 @@ def fetch_category_map():
     except Exception:
         return CATEGORIES_FALLBACK
 
+def build_guide_markdown(meta, sections):
+    # Metadata block at top (kept within first 50 lines for CI)
+    header = [
+        f'author: {meta["author"]}',
+        f'id: {meta["id"]}',
+        f'language: {meta["language"]}',
+        f'summary: {meta["summary"]}',
+        f'categories: {meta["categories"]}',
+        f'environments: {meta["environments"]}',
+        f'status: {meta["status"]}',
+        f'feedback link: {meta["feedback"]}',
+        f'fork repo link: {meta["fork_repo"]}',
+        f'open in snowflake: {meta["open_in"]}',
+        "",
+    ]
+    # Lists
+    wl = [f"- {x.strip()}" for x in (sections.get("learn") or "").splitlines() if x.strip()]
+    wn = [f"- {x.strip()}" for x in (sections.get("need") or "").splitlines() if x.strip()]
+    # Resources: "Label | URL" or raw URL
+    res_lines = []
+    for line in (sections.get("resources") or "").splitlines():
+        line = line.strip()
+        if not line: 
+            continue
+        if " | " in line:
+            label, url = [p.strip() for p in line.split(" | ", 1)]
+            res_lines.append(f"- [{label}]({url})")
+        else:
+            res_lines.append(f"- {line}")
+    # Steps
+    steps_md = []
+    for idx, step in enumerate(sections.get("steps") or [], start=1):
+        title = step.get("title", "").strip() or f"Step {idx}"
+        content = step.get("content", "").strip()
+        steps_md.append(f"## Step {idx}: {title}\n\n{content}\n")
+    body = []
+    body.append(f"# {sections.get('title') or 'Snowflake Guide'}\n")
+    body.append("## Overview\n" + (sections.get("overview") or "").strip() + "\n")
+    if wl:
+        body.append("### What You’ll Learn\n" + "\n".join(wl) + "\n")
+    if wn:
+        body.append("### What You’ll Need\n" + "\n".join(wn) + "\n")
+    if sections.get("build"):
+        body.append("### What You’ll Build\n" + sections["build"].strip() + "\n")
+    body.append("## Process\n" + ("\n".join(steps_md) if steps_md else ""))
+    if sections.get("conclusion") or res_lines:
+        body.append("## Conclusion And Resources\n")
+        if sections.get("conclusion"):
+            body.append("### Conclusion\n" + sections["conclusion"].strip() + "\n")
+        if res_lines:
+            body.append("### Related Resources\n" + "\n".join(res_lines) + "\n")
+    return "\n".join(header + body)
+
+
 # Theming (white bg, Snowflake Blue headings)
 st.set_page_config(page_title="Snowflake Guide Generator", page_icon="❄️", layout="centered")
 st.markdown(
@@ -275,6 +329,26 @@ with st.form("guide_form"):
     fork_repo = st.text_input("Fork repo link", value="<repo>").strip()
     open_in = st.text_input("Open in Snowflake", value="<deeplink or remove>").strip()
 
+    st.subheader("Guide Content")
+    guide_title = st.text_input("Guide Title (H1)", placeholder="Getting Started with ...").strip()
+    overview = st.text_area("Overview", height=140)
+
+    learn = st.text_area("What You’ll Learn (one per line)", height=100)
+    need = st.text_area("What You’ll Need (one per line)", height=100)
+    build_txt = st.text_input("What You’ll Build", placeholder="Describe the final outcome")
+
+    step_count = st.number_input("Number of steps", min_value=1, max_value=20, value=3, step=1)
+    steps = []
+    for i in range(step_count):
+        st.markdown(f"#### Step {i+1}")
+        s_title = st.text_input(f"Step {i+1} title", key=f"step_title_{i}")
+        s_content = st.text_area(f"Step {i+1} content", key=f"step_content_{i}", height=140)
+        steps.append({"title": s_title, "content": s_content})
+
+    conclusion = st.text_area("Conclusion", height=100)
+    resources = st.text_area("Resource links (one per line; optional 'Label | URL')", height=100)
+
+
     st.subheader("Assets")
     image_uploads = st.file_uploader(
         "Upload images (<= 1MB each; lowercase_underscores.png)",
@@ -297,20 +371,31 @@ if submitted:
         st.error("Guide ID required (lowercase letters/numbers with hyphens).")
         st.stop()
 
-    tmpl = load_template()
-    md = inject_metadata(tmpl, {
+     # Build full guide markdown (not just a template)
+    meta = {
         "author": author or "First Last",
         "id": guide_id,
         "language": language,
         "summary": summary or "This is a sample Snowflake Guide",
-        "categories": categories_final,
+        "categories": categories or auto_categories,
         "environments": environments or "web",
         "status": status,
-        "feedback link": feedback,
-        "fork repo link": fork_repo,
-        "open in snowflake": open_in
-    })
-
+        "feedback": feedback,
+        "fork_repo": fork_repo,
+        "open_in": open_in
+    }
+    sections = {
+        "title": guide_title,
+        "overview": overview,
+        "learn": learn,
+        "need": need,
+        "build": build_txt,
+        "steps": steps,
+        "conclusion": conclusion,
+        "resources": resources
+    }
+    md = build_guide_markdown(meta, sections)
+    
     issues = validate_markdown(md, guide_id)
     if issues:
         st.warning("Validation issues (key CI checks):\n- " + "\n- ".join(issues))
