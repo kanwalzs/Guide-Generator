@@ -344,14 +344,7 @@ with st.form("guide_form"):
         s_content = st.text_area(f"Step {i+1} content", key=f"{key_prefix}_step_content_{i}", height=140)
         steps.append({"title": s_title, "content": s_content})
 
-    step_count = int(st.number_input("Number of steps", min_value=1, max_value=20, value=3, step=1))
-    steps = []
-    key_prefix = f"{guide_id or 'guide'}"
-    for i in range(step_count):
-        st.markdown(f"#### Step {i+1}")
-        s_title = st.text_input(f"Step {i+1} title", key=f"{key_prefix}_step_title_{i}")
-        s_content = st.text_area(f"Step {i+1} content", key=f"{key_prefix}_step_content_{i}", height=140)
-        steps.append({"title": s_title, "content": s_content})
+
 
     conclusion = st.text_area("Conclusion", height=100)
     resources = st.text_area("Resource links (one per line; optional 'Label | URL')", height=100)
