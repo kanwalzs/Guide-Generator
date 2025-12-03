@@ -284,6 +284,26 @@ st.markdown(
         color: var(--bg) !important;
         border: none !important;
       }
+            /* Product select: darker text everywhere */
+      .stSelectbox div[role="combobox"],
+      .stSelectbox [data-baseweb="select"] *,
+      .stMultiSelect div[role="combobox"],
+      .stMultiSelect [data-baseweb="select"] * {
+        color: var(--text-dark) !important;
+      }
+
+      /* Placeholder color inside the select input */
+      .stSelectbox input::placeholder,
+      .stMultiSelect input::placeholder {
+        color: var(--text-dark) !important;
+        opacity: 1 !important;
+      }
+
+      /* Dropdown menu items */
+      ul[role="listbox"], ul[role="listbox"] li, ul[role="listbox"] li * {
+        background: var(--white) !important;
+        color: var(--text-dark) !important;
+      }
     </style>
     """,
     unsafe_allow_html=True,
