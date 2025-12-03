@@ -302,7 +302,7 @@ st.markdown(
       /* Dropdown menu items */
       ul[role="listbox"], ul[role="listbox"] li, ul[role="listbox"] li * {
         background: var(--white) !important;
-        color: var(--text-dark) !important;
+
       }
     </style>
     """,
