@@ -368,8 +368,10 @@ with st.form("guide_form"):
 
 
 
-    conclusion = st.text_area("Concluding Statement", height=300)
-    resources = st.text_area("Resource links (one per line; optional 'Label | URL')", height=100)
+    st.divider()  # optional, for extra separation
+st.subheader("Conclusion and Resources")
+conclusion = st.text_area("Conclusion", height=120)
+resources = st.text_area("Related resources (one per line; optional 'Label | URL')", height=100)
 
     st.subheader("Assets")
     image_uploads = st.file_uploader(
