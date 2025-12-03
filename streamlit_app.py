@@ -170,12 +170,7 @@ def fetch_category_map():
 # Theming (white bg, Snowflake Blue headings)
 st.set_page_config(page_title="Snowflake Guide Generator", page_icon="❄️", layout="centered")
 st.markdown(
-    """
-    <style>
-    .stApp { background-color: black; }
-    h1, h2, h3 { color: #ffffff !important; }
-    </style>
-    """,
+
     unsafe_allow_html=True,
 )
 st.markdown('<h1>Snowflake Guide Generator</h1>', unsafe_allow_html=True)
