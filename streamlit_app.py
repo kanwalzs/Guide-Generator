@@ -289,7 +289,25 @@ st.markdown(
       .stMultiSelect [data-baseweb="select"] * {
         color: var(--text-dark) !important;
       }
-
+       /* Ensure ALL selects (incl. Language) are white bg with dark text */
+      .stSelectbox [data-baseweb="select"],
+      .stSelectbox [data-baseweb="select"] > div,
+      .stSelectbox div[role="combobox"] {
+        background: var(--white) !important;
+        color: var(--text-dark) !important;
+      }
+      .stSelectbox [data-baseweb="select"] * {
+        color: var(--text-dark) !important;
+      }
+      .stSelectbox [data-baseweb="select"] input {
+        background: var(--white) !important;
+        color: var(--text-dark) !important;
+      }
+      .stSelectbox input::placeholder { color: var(--text-dark) !important; opacity: 1 !important; }
+      ul[role="listbox"], ul[role="listbox"] li, ul[role="listbox"] li * {
+        background: var(--white) !important;
+        color: var(--text-dark) !important;
+      }
       /* Input element inside select combobox */
       .stSelectbox [data-baseweb="select"] input,
       .stMultiSelect [data-baseweb="select"] input {
