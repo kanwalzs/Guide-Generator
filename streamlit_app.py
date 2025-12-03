@@ -170,7 +170,42 @@ def fetch_category_map():
 # Theming (white bg, Snowflake Blue headings)
 st.set_page_config(page_title="Snowflake Guide Generator", page_icon="❄️", layout="centered")
 st.markdown(
+   """
+    <style>
+      :root {
+        --bg: #0B1220;           /* Dark background */
+        --text-primary: #F5F7FA; /* Near-white */
+        --text-secondary: #E5E7EB; /* Light grey */
+        --accent: #29B5E8;       /* Snowflake Blue */
+        --input-bg: #0F172A; 
+        --border: #1F2937;
+      }
+      .stApp { background-color: var(--bg); color: var(--text-primary); }
 
+      /* Headings */
+      h1, h2, h3 { color: var(--accent) !important; }
+
+      /* General text */
+      body, p, li, span, div, label, [data-testid="stMarkdownContainer"] {
+        color: var(--text-secondary) !important;
+      }
+      a { color: var(--accent) !important; }
+
+      /* Inputs and textareas */
+      input, textarea, select {
+        color: var(--text-primary) !important;
+        background-color: var(--input-bg) !important;
+        border-color: var(--border) !important;
+      }
+
+      /* Buttons */
+      .stButton>button, .stDownloadButton>button {
+        background-color: var(--accent) !important;
+        color: #0B1220 !important;
+        border: none !important;
+      }
+    </style>
+    """,
     unsafe_allow_html=True,
 )
 st.markdown('<h1>Snowflake Guide Generator</h1>', unsafe_allow_html=True)
