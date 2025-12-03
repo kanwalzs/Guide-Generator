@@ -349,7 +349,8 @@ with st.form("guide_form"):
 
 
     # Status (no 'Hidden')
-    status = st.selectbox("Status", value="Published")
+    status = st.text_input("Status", value="Published", disabled=True)
+status = "Published"
     environments = st.text_input("Environments", value="web").strip()
     feedback = st.text_input("Feedback link", value="https://github.com/Snowflake-Labs/sfguides/issues").strip()
     fork_repo = st.text_input("Fork repo link", value="<repo>").strip()
