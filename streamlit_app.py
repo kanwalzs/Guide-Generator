@@ -174,8 +174,9 @@ st.markdown(
     <style>
       :root {
         --bg: #0B1220;           /* Dark background */
-        --text-primary: #F5F7FA; /* Near-white */
-        --text-secondary: #0B1220; /* Dark */
+        --text-light: #E5E7EB;    /* Light grey for dark bg */
+        --text-dark: #111827;     /* Nearly black for white bg */
+        --white: #ffffff;
         --accent: #29B5E8;       /* Snowflake Blue */
         --input-bg: #0F172A; 
         --border: #1F2937;
