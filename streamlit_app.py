@@ -234,7 +234,7 @@ st.markdown(
     <style>
       :root {
         --bg: #000000;            /* Black app background */
-        --text-light: #E5E7EB;    /* Light grey for dark bg */
+        --text-light: #beedf7;    /* Light blue for dark bg */
         --text-dark: #111827;     /* Nearly black for white bg */
         --white: #ffffff;
         --accent: #29B5E8;        /* Snowflake Blue for headings/links */
@@ -313,26 +313,20 @@ with st.form("guide_form"):
     # Multi-select products -> auto-fill taxonomy paths (comma-separated)
     default_products = [product_names[0]] if product_names else []
     selected_products = st.multiselect(
-        "Products (choose one or more; auto-fills taxonomy paths)",
+        "Products (choose one or more; Categories will be added in this format with complete path- taxonomy paths, comma-separated)",
         product_names,
         default=default_products
     )
     auto_categories_list = [categories_map[p] for p in selected_products] if selected_products else [CATEGORIES_FALLBACK["Quickstart"]]
     auto_categories = ", ".join(auto_categories_list)
-    override = st.checkbox("Override categories (advanced)", value=False)
-    categories_input = st.text_input(
-        "Categories (taxonomy paths, comma-separated)",
-        value=auto_categories,
-        disabled=not override
-    ).strip()
-    categories_final = categories_input if override else auto_categories
+
 
     # Status (no 'Hidden')
-    status = st.selectbox("Status", ["Published", "Archived"], index=0)
+    status = st.selectbox("Status", "Published", index=0)
     environments = st.text_input("Environments", value="web").strip()
     feedback = st.text_input("Feedback link", value="https://github.com/Snowflake-Labs/sfguides/issues").strip()
     fork_repo = st.text_input("Fork repo link", value="<repo>").strip()
-    open_in = st.text_input("Open in Snowflake", value="<deeplink or remove>").strip()
+    open_in = st.text_input("Open in Snowflake (if template or deeplink is available)", value="<deeplink or remove>").strip()
 
     # Use the externally-controlled step count to render fields
     sc = int(st.session_state.get("step_count", 3))
