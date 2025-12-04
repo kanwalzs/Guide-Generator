@@ -366,6 +366,79 @@ categories_map = fetch_category_map()
 product_names = sorted(categories_map.keys())
 
 with st.form("guide_form"):
+    col_meta, col_right = st.columns([1, 1.2], gap="large")
+
+    with col_meta:
+        st.subheader("Metadata")
+        guide_id = st.text_input("Guide ID (folder and filename, hyphen-case)", placeholder="intro-to-cortex").strip()
+        author = st.text_input("Author", placeholder="First Last").strip()
+        language = st.selectbox("Language", ALLOWED_LANGS, index=ALLOWED_LANGS.index("en"))
+        summary = st.text_input("Summary (1 sentence)", placeholder="This is a sample Snowflake Guide").strip()
+
+        # Products -> auto-fill taxonomy paths (comma-separated)
+        default_products = [product_names[0]] if product_names else []
+        selected_products = st.multiselect(
+            "Products (choose one or more; Categories will be added as taxonomy paths)",
+            product_names,
+            default=default_products
+        )
+        auto_categories_list = [categories_map[p] for p in selected_products] if selected_products else [CATEGORIES_FALLBACK["Quickstart"]]
+        auto_categories = ", ".join(auto_categories_list)
+        categories_final = auto_categories  # single source used at export
+
+        # Status fixed to Published
+        st.text("Status: Published")
+        status = "Published"
+
+        environments = st.text_input("Environments", value="web").strip()
+        feedback = st.text_input("Feedback link", value="https://github.com/Snowflake-Labs/sfguides/issues").strip()
+        fork_repo = st.text_input("Fork repo link", value="<repo>").strip()
+        open_in = st.text_input("Open in Snowflake (if template or deeplink is available)", value="<deeplink or remove>").strip()
+
+    with col_right:
+        st.subheader("Guide Content")
+        guide_title = st.text_input("Guide Title (H1)", placeholder="Getting Started with ...").strip()
+        overview = st.text_area("Overview", height=140)
+        learn = st.text_area("What You’ll Learn (one per line)", height=100)
+        need = st.text_area("What You’ll Need (one per line)", height=100)
+        build_txt = st.text_input("What You’ll Build", placeholder="Describe the final outcome")
+
+        st.subheader("Steps")
+        sc = int(st.session_state.get("step_count", 3))
+        steps = []
+        for i in range(sc):
+            st.markdown(f"#### Step {i+1}")
+            title_key = f"step_title_{i}"
+            content_key = f"step_content_{i}"
+            st.text_input(f"Step {i+1} title", key=title_key)
+            st.text_area(f"Step {i+1} content", key=content_key, height=140)
+            steps.append({
+                "title": st.session_state.get(title_key, "").strip(),
+                "content": st.session_state.get(content_key, "").strip()
+            })
+
+        st.subheader("Conclusion and Resources")
+        conclusion = st.text_area("Concluding Statement", height=120)
+        resources = st.text_area("Related resources (one per line; optional 'Label | URL')", height=100)
+
+        st.subheader("Assets")
+        image_uploads = st.file_uploader(
+            "Upload images (<= 1MB each; lowercase_underscores.png)",
+            type=["png","jpg","jpeg","gif","svg","webp","bmp","ico"],
+            accept_multiple_files=True
+        )
+        other_uploads = st.file_uploader(
+            "Upload additional files (non-images; will be placed in assets/, ≤ 10MB each)",
+            accept_multiple_files=True
+        )
+        url_block = st.text_area(
+            "Additional asset URLs (one per line; downloaded into assets/, ≤ 10MB each)",
+            placeholder="https://example.com/file.csv\nhttps://example.com/archive.zip"
+        )
+
+    submitted = st.form_submit_button("Generate Guide")
+
+    
     st.subheader("Metadata")
     guide_id = st.text_input("Guide ID (folder and filename, hyphen-case)", placeholder="intro-to-cortex").strip()
     author = st.text_input("Author", placeholder="First Last").strip()
@@ -401,14 +474,18 @@ with st.form("guide_form"):
 
 
     # Use the externally-controlled step count to render fields
-    sc = int(st.session_state.get("step_count", 3))
-    steps = []
-    key_prefix = f"{guide_id or 'guide'}"
-    for i in range(sc):
-        st.markdown(f"#### Step {i+1}")
-        s_title = st.text_input(f"Step {i+1} title", key=f"{key_prefix}_step_title_{i}")
-        s_content = st.text_area(f"Step {i+1} content", key=f"{key_prefix}_step_content_{i}", height=140)
-        steps.append({"title": s_title, "content": s_content})
+   sc = int(st.session_state.get("step_count", 3))
+steps = []
+for i in range(sc):
+    st.markdown(f"#### Step {i+1}")
+    title_key = f"step_title_{i}"
+    content_key = f"step_content_{i}"
+    st.text_input(f"Step {i+1} title", key=title_key)
+    st.text_area(f"Step {i+1} content", key=content_key, height=140)
+    steps.append({
+        "title": st.session_state.get(title_key, "").strip(),
+        "content": st.session_state.get(content_key, "").strip()
+    })
 
 
 
@@ -453,7 +530,7 @@ if submitted:
         "open_in": open_in
     }
     # remove completely empty steps; keep all others
-    steps_filtered = [s for s in steps if (s.get("title","").strip() or s.get("content","").strip())]
+    steps_filtered = [s for s in steps if (s.get("title","") or s.get("content",""))]
     sections = {
         "title": guide_title,
         "overview": overview,
