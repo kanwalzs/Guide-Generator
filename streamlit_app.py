@@ -460,23 +460,3 @@ if submitted:
 
 st.info("Next: unzip into your fork of the sfguides repo at site/sfguides/src/<guide-id>/, modify or update the markdown file as needed, open PR, and submit.  Your guide goes through some validation basic checks which are built in.")
 
-st.divider()
-with st.expander("AI draft (optional)", expanded=False):
-    ai_files = list_ai_inputs()
-    if not ai_files:
-        st.caption("No input files found under new-template-form-inputs/")
-    else:
-        ai_choice = st.selectbox("Select input file for AI draft", ai_files, index=0, key="ai_choice")
-        run_ai = st.button("Run AI draft with selected input")
-        if run_ai:
-            try:
-                import subprocess, shlex
-                template_id = guide_id if guide_id else "preview-id"
-                cmd = f'sf ai claude -- --dangerously-skip-permissions -p "Follow instructions from prompts/new-template-generation.md to generate a new template (template id: {template_id}) for the user inputs in {ai_choice}" --verbose --output-format stream-json'
-                output = subprocess.check_output(shlex.split(cmd), stderr=subprocess.STDOUT, timeout=300)
-                text = output.decode("utf-8", errors="replace")
-                st.success("AI draft completed. Raw output shown below.")
-                st.text_area("AI output (stream-json)", text, height=240)
-                st.info("Copy useful content into the fields above, or add parsing to auto-fill.")
-            except Exception as e:
-                st.error(f"AI draft failed: {e}")
