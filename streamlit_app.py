@@ -391,6 +391,7 @@ st.markdown(
       .stMultiSelect div[data-baseweb="select"] > div,
       .stMultiSelect div[role="combobox"] {
         background-color: var(--white) !important;
+        color: var(--text-dark) !important;
       }
       
       /* Input element inside select combobox */
