@@ -261,14 +261,14 @@ def list_ai_inputs(base="new-template-form-inputs"):
     return sorted(md_files)
 
 
-# Theming (black bg, light grey text; white inputs with black text)
-st.set_page_config(page_title="Snowflake Guide Generator", page_icon="❄️", layout="centered")
+# Theming (dark blue bg, light text; white inputs with dark text) and wide layout
+st.set_page_config(page_title="Snowflake Guide Generator", page_icon="❄️", layout="wide")
 st.markdown(
     """
     <style>
       :root {
-        --bg: #000000;            /* App background */
-        --text-light: #E5E7EB;    /* Light grey on dark bg */
+        --bg: #13265C;            /* Dark blue app background */
+        --text-light: #F2F5FA;    /* Very light grey for dark bg */
         --text-dark: #111827;     /* Near-black on white bg */
         --white: #ffffff;
         --accent: #29B5E8;        /* Snowflake Blue */
@@ -276,6 +276,7 @@ st.markdown(
 
       /* Base layout */
       .stApp { background: var(--bg); color: var(--text-light); }
+      .block-container { max-width: 1400px; padding-left: 2rem; padding-right: 2rem; }
       h1, h2, h3 { color: var(--accent) !important; }
       body, p, li, span, label, [data-testid="stMarkdownContainer"] {
         color: var(--text-light) !important;
@@ -321,7 +322,6 @@ st.markdown(
       /* BaseWeb select internals: make every descendant dark */
       .stSelectbox [data-baseweb="select"] *,
       .stMultiSelect [data-baseweb="select"] * {
-        background: var(--white) !important;
         color: var(--text-dark) !important;
       }
       
@@ -366,140 +366,80 @@ categories_map = fetch_category_map()
 product_names = sorted(categories_map.keys())
 
 with st.form("guide_form"):
-    col_meta, col_right = st.columns([1, 1.2], gap="large")
+    col_meta, col_right = st.columns([1, 2], gap="large")
     with col_meta:
-    st.subheader("Metadata")
-    guide_id = st.text_input(
-        "Guide ID (folder and filename, hyphen-case)",
-        placeholder="intro-to-cortex",
-        key="meta_guide_id",
-    ).strip()
-    author = st.text_input("Author", placeholder="First Last", key="meta_author").strip()
-    language = st.selectbox("Language", ALLOWED_LANGS, index=ALLOWED_LANGS.index("en"), key="meta_language")
-    summary = st.text_input("Summary (1 sentence)", placeholder="This is a sample Snowflake Guide", key="meta_summary").strip()
+        st.subheader("Metadata")
+        guide_id = st.text_input(
+            "Guide ID (folder and filename, hyphen-case)",
+            placeholder="intro-to-cortex",
+            key="meta_guide_id",
+        ).strip()
+        author = st.text_input("Author", placeholder="First Last", key="meta_author").strip()
+        language = st.selectbox("Language", ALLOWED_LANGS, index=ALLOWED_LANGS.index("en"), key="meta_language")
+        summary = st.text_input("Summary (1 sentence)", placeholder="This is a sample Snowflake Guide", key="meta_summary").strip()
 
-    default_products = [product_names[0]] if product_names else []
-    selected_products = st.multiselect(
-        "Products (choose one or more; Categories will be added as taxonomy paths)",
-        product_names,
-        default=default_products,
-        key="meta_products",
-    )
-    auto_categories_list = [categories_map[p] for p in selected_products] if selected_products else [CATEGORIES_FALLBACK["Quickstart"]]
-    auto_categories = ", ".join(auto_categories_list)
-    categories_final = auto_categories
+        default_products = [product_names[0]] if product_names else []
+        selected_products = st.multiselect(
+            "Products (choose one or more; Categories will be added as taxonomy paths)",
+            product_names,
+            default=default_products,
+            key="meta_products",
+        )
+        auto_categories_list = [categories_map[p] for p in selected_products] if selected_products else [CATEGORIES_FALLBACK["Quickstart"]]
+        auto_categories = ", ".join(auto_categories_list)
+        categories_final = auto_categories
 
-    st.text("Status: Published")
-    status = "Published"
+        st.text("Status: Published")
+        status = "Published"
 
-    environments = st.text_input("Environments", value="web", key="meta_env").strip()
-    feedback = st.text_input("Feedback link", value="https://github.com/Snowflake-Labs/sfguides/issues", key="meta_feedback").strip()
-    fork_repo = st.text_input("Fork repo link", value="<repo>", key="meta_forkrepo").strip()
-    open_in = st.text_input("Open in Snowflake (if template or deeplink is available)", value="<deeplink or remove>", key="meta_openin").strip()
+        environments = st.text_input("Environments", value="web", key="meta_env").strip()
+        feedback = st.text_input("Feedback link", value="https://github.com/Snowflake-Labs/sfguides/issues", key="meta_feedback").strip()
+        fork_repo = st.text_input("Fork repo link", value="<repo>", key="meta_forkrepo").strip()
+        open_in = st.text_input("Open in Snowflake (if template or deeplink is available)", value="<deeplink or remove>", key="meta_openin").strip()
 
     with col_right:
-    st.subheader("Guide Content")
-    guide_title = st.text_input("Guide Title (H1)", placeholder="Getting Started with ...", key="content_title").strip()
-    overview = st.text_area("Overview", height=140, key="content_overview")
-    learn = st.text_area("What You’ll Learn (one per line)", height=100, key="content_learn")
-    need = st.text_area("What You’ll Need (one per line)", height=100, key="content_need")
-    build_txt = st.text_input("What You’ll Build", placeholder="Describe the final outcome", key="content_build")
+        st.subheader("Guide Content")
+        guide_title = st.text_input("Guide Title (H1)", placeholder="Getting Started with ...", key="content_title").strip()
+        overview = st.text_area("Overview", height=140, key="content_overview")
+        learn = st.text_area("What You’ll Learn (one per line)", height=100, key="content_learn")
+        need = st.text_area("What You’ll Need (one per line)", height=100, key="content_need")
+        build_txt = st.text_input("What You’ll Build", placeholder="Describe the final outcome", key="content_build")
 
-    st.subheader("Steps")
-    sc = int(st.session_state.get("step_count", 3))
-    steps = []
-    for i in range(sc):
-        st.markdown(f"#### Step {i+1}")
-        title_key = f"steps_title_{i}"
-        content_key = f"steps_content_{i}"
-        st.text_input(f"Step {i+1} title", key=title_key)
-        st.text_area(f"Step {i+1} content", key=content_key, height=140)
-        steps.append({
-            "title": st.session_state.get(title_key, "").strip(),
-            "content": st.session_state.get(content_key, "").strip()
-        })
+        st.subheader("Steps")
+        sc = int(st.session_state.get("step_count", 3))
+        steps = []
+        for i in range(sc):
+            st.markdown(f"#### Step {i+1}")
+            title_key = f"steps_title_{i}"
+            content_key = f"steps_content_{i}"
+            st.text_input(f"Step {i+1} title", key=title_key)
+            st.text_area(f"Step {i+1} content", key=content_key, height=140)
+            steps.append({
+                "title": st.session_state.get(title_key, "").strip(),
+                "content": st.session_state.get(content_key, "").strip()
+            })
 
-    st.subheader("Conclusion and Resources")
-    conclusion = st.text_area("Concluding Statement", height=120, key="content_conclusion")
-    resources = st.text_area("Related resources (one per line; optional 'Label | URL')", height=100, key="content_resources")
+        st.subheader("Conclusion and Resources")
+        conclusion = st.text_area("Concluding Statement", height=120, key="content_conclusion")
+        resources = st.text_area("Related resources (one per line; optional 'Label | URL')", height=100, key="content_resources")
 
-    st.subheader("Assets")
-    image_uploads = st.file_uploader(
-        "Upload images (<= 1MB each; lowercase_underscores.png)",
-        type=["png","jpg","jpeg","gif","svg","webp","bmp","ico"],
-        accept_multiple_files=True,
-        key="assets_images",
-    )
-    other_uploads = st.file_uploader(
-        "Upload additional files (non-images; will be placed in assets/, ≤ 10MB each)",
-        accept_multiple_files=True,
-        key="assets_other",
-    )
-    url_block = st.text_area(
-        "Additional asset URLs (one per line; downloaded into assets/, ≤ 10MB each)",
-        placeholder="https://example.com/file.csv\nhttps://example.com/archive.zip",
-        key="assets_urls",
-    )
-
-    
-    submitted = st.form_submit_button("Generate Guide")
-
-
-    st.subheader("Metadata")
-    guide_id = st.text_input("Guide ID (folder and filename, hyphen-case)", placeholder="intro-to-cortex").strip()
-    author = st.text_input("Author", placeholder="First Last").strip()
-    language = st.selectbox("Language", ALLOWED_LANGS, index=ALLOWED_LANGS.index("en"))
-    summary = st.text_input("Summary (1 sentence)", placeholder="This is a sample Snowflake Guide").strip()
-
-    # Multi-select products -> auto-fill taxonomy paths (comma-separated)
-    default_products = [product_names[0]] if product_names else []
-    selected_products = st.multiselect(
-        "Products (choose one or more; Categories will be added in this format with complete path- taxonomy paths, comma-separated)",
-        product_names,
-        default=default_products
-    )
-    auto_categories_list = [categories_map[p] for p in selected_products] if selected_products else [CATEGORIES_FALLBACK["Quickstart"]]
-    auto_categories = ", ".join(auto_categories_list)
-    categories_final = auto_categories
-
-
-    # Status (no 'Hidden')
-    status = st.text("Status: Published")
-    status = "Published"
-    environments = st.text_input("Environments", value="web").strip()
-    feedback = st.text_input("Feedback link", value="https://github.com/Snowflake-Labs/sfguides/issues").strip()
-    fork_repo = st.text_input("Fork repo link", value="<repo>").strip()
-    open_in = st.text_input("Open in Snowflake (if template or deeplink is available)", value="<deeplink or remove>").strip()
-
-    # Guide content (re-add so variables exist)
-    guide_title = st.text_input("Guide Title (H1)", placeholder="Getting Started with ...").strip()
-    overview = st.text_area("Overview", height=140)
-    learn = st.text_area("What You’ll Learn (one per line)", height=100)
-    need = st.text_area("What You’ll Need (one per line)", height=100)
-    build_txt = st.text_input("What You’ll Build", placeholder="Describe the final outcome").strip()
-
-
-
-
-    st.divider()  # optional, for extra separation
-    st.subheader("Concluding Statement and Resources")
-    conclusion = st.text_area("Concluding Statement", height=120)
-    resources = st.text_area("Related resources (one per line; optional 'Label | URL')", height=100)
-
-    st.subheader("Assets")
-    image_uploads = st.file_uploader(
-        "Upload images (<= 1MB each; lowercase_underscores.png)",
-        type=["png","jpg","jpeg","gif","svg","webp","bmp","ico"],
-        accept_multiple_files=True
-    )
-    other_uploads = st.file_uploader(
-        "Upload additional files (non-images; will be placed in assets/, ≤ 10MB each)",
-        accept_multiple_files=True
-    )
-    url_block = st.text_area(
-        "Additional asset URLs (one per line; downloaded into assets/, ≤ 10MB each)",
-        placeholder="https://example.com/file.csv\nhttps://example.com/archive.zip"
-    )
+        st.subheader("Assets")
+        image_uploads = st.file_uploader(
+            "Upload images (<= 1MB each; lowercase_underscores.png)",
+            type=["png","jpg","jpeg","gif","svg","webp","bmp","ico"],
+            accept_multiple_files=True,
+            key="assets_images",
+        )
+        other_uploads = st.file_uploader(
+            "Upload additional files (non-images; will be placed in assets/, ≤ 10MB each)",
+            accept_multiple_files=True,
+            key="assets_other",
+        )
+        url_block = st.text_area(
+            "Additional asset URLs (one per line; downloaded into assets/, ≤ 10MB each)",
+            placeholder="https://example.com/file.csv\nhttps://example.com/archive.zip",
+            key="assets_urls",
+        )
 
     submitted = st.form_submit_button("Generate Guide")
 
