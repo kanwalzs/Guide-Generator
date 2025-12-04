@@ -390,7 +390,7 @@ st.markdown(
       .stMultiSelect div[data-baseweb="select"],
       .stMultiSelect div[data-baseweb="select"] > div,
       .stMultiSelect div[role="combobox"] {
-        background-color: var(--white) !important;
+        background-color: var(--dark) !important;
         color: var(--text-dark) !important;
       }
       
