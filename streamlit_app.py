@@ -317,9 +317,11 @@ st.markdown(
 
       /* File uploader: white bg, dark text */
       [data-testid="stFileUploader"] section div {
-        background-color: var(--dark) !important;
-        color: var(--text-light) !important;
+        background-color: var(--white) !important;
+        color: var(--text-dark) !important;
       }
+      /* Hide default per-file size hint text under uploader */
+      [data-testid="stFileUploader"] small { display: none !important; }
 
       /* Buttons */
       .stButton>button, .stDownloadButton>button {
@@ -351,6 +353,23 @@ st.markdown(
       .stMultiSelect [data-baseweb="select"] div,
       .stMultiSelect [data-baseweb="select"] span {
         color: var(--text-dark) !important;
+      }
+      /* Extra enforcement for tricky BaseWeb nodes */
+      .stSelectbox div[role="combobox"] *,
+      .stMultiSelect div[role="combobox"] * {
+        color: var(--text-dark) !important;
+        fill: var(--text-dark) !important; /* icons/carets */
+      }
+      /* Selected single value text */
+      .stSelectbox [data-baseweb="select"] [aria-selected="true"],
+      .stSelectbox [data-baseweb="select"] [data-baseweb="selected"] {
+        color: var(--text-dark) !important;
+      }
+      /* Placeholder when empty */
+      .stSelectbox [data-baseweb="select"] [aria-placeholder="true"],
+      .stSelectbox [data-baseweb="select"] [data-placeholder="true"] {
+        color: var(--text-dark) !important;
+        opacity: 1 !important;
       }
 
       /* BaseWeb select internals: make every descendant dark */
@@ -493,14 +512,14 @@ with st.form("guide_form"):
         need = st.text_area("What You’ll Need (one per line)", height=100, key="content_need")
         build_txt = st.text_input("What You’ll Build", placeholder="Describe the final outcome", key="content_build")
 
-        st.subheader("Steps")
+        st.subheader("Steps to include in Guide")
         sc = int(st.session_state.get("step_count", 3))
         steps = []
         for i in range(sc):
             st.markdown(f"#### Step {i+1}")
             title_key = f"steps_title_{i}"
             content_key = f"steps_content_{i}"
-            st.text_input(f"Step {i+1} title", key=title_key)
+            st.text_input(f"Step {i+1} title (3–4 words)", key=title_key)
             st.text_area(f"Step {i+1} content", key=content_key, height=140)
             steps.append({
                 "title": st.session_state.get(title_key, "").strip(),
