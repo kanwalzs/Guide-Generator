@@ -161,21 +161,40 @@ def zipdir(path):
 
 
 def fetch_category_map():
-    # Try to scrape taxonomy paths from the referenced doc; fallback if anything fails
+    """
+    Returns dict of display_label -> taxonomy_path.
+    Merges fetched items with EXTENDED_CATEGORIES. Avoids label collisions.
+    """
+    paths = set()
     try:
-        r = requests.get(CATEGORIES_SOURCE_URL, timeout=10)
+        headers = {"User-Agent": "Mozilla/5.0 (Guide-Generator)"}
+        r = requests.get(CATEGORIES_SOURCE_URL, headers=headers, timeout=10)
         r.raise_for_status()
         text = r.text
-        paths = sorted(set(m.group(0) for m in re.finditer(r"snowflake-site:taxonomy/[a-z0-9/\-_]+", text)))
-        mapping = {}
-        for p in paths:
-            # Use last segment as label; title-case for display
-            label = p.split("/")[-1].replace("-", " ").title()
-            mapping[label] = p
-        return mapping or CATEGORIES_FALLBACK
+        # Broaden regex: allow A–Z and dots/underscores
+        found = set(m.group(0) for m in re.finditer(r"snowflake-site:taxonomy/[A-Za-z0-9/\-_.]+", text))
+        paths |= found
     except Exception:
-        return CATEGORIES_FALLBACK
+        pass
 
+    # Always merge fallback and extended
+    paths |= set(CATEGORIES_FALLBACK.values())
+    paths |= set(EXTENDED_CATEGORIES.values())
+
+    # Build display labels, avoid collisions by appending parent segment when needed
+    by_label = {}
+    seen_labels = set()
+    for p in sorted(paths):
+        parts = [seg for seg in p.split("/") if seg]
+        tail = parts[-1] if parts else p
+        label = tail.replace("-", " ").title()
+        if label in seen_labels and len(parts) >= 2:
+            parent = parts[-2].replace("-", " ").title()
+            label = f"{parent}: {label}"
+        seen_labels.add(label)
+        by_label[label] = p
+
+    return by_label
 
 def build_guide_markdown(meta, sections):
     # Metadata block at top (kept within first 50 lines for CI)
