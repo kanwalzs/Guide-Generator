@@ -179,7 +179,6 @@ def fetch_category_map():
 
     # Always merge fallback and extended
     paths |= set(CATEGORIES_FALLBACK.values())
-    paths |= set(EXTENDED_CATEGORIES.values())
 
     # Build display labels, avoid collisions by appending parent segment when needed
     by_label = {}
@@ -381,6 +380,7 @@ with st.form("guide_form"):
     )
     auto_categories_list = [categories_map[p] for p in selected_products] if selected_products else [CATEGORIES_FALLBACK["Quickstart"]]
     auto_categories = ", ".join(auto_categories_list)
+        categories_final = auto_categories
 
 
     # Status (no 'Hidden')
@@ -390,6 +390,14 @@ with st.form("guide_form"):
     feedback = st.text_input("Feedback link", value="https://github.com/Snowflake-Labs/sfguides/issues").strip()
     fork_repo = st.text_input("Fork repo link", value="<repo>").strip()
     open_in = st.text_input("Open in Snowflake (if template or deeplink is available)", value="<deeplink or remove>").strip()
+
+    # Guide content (re-add so variables exist)
+    guide_title = st.text_input("Guide Title (H1)", placeholder="Getting Started with ...").strip()
+    overview = st.text_area("Overview", height=140)
+    learn = st.text_area("What You’ll Learn (one per line)", height=100)
+    need = st.text_area("What You’ll Need (one per line)", height=100)
+    build_txt = st.text_input("What You’ll Build", placeholder="Describe the final outcome").strip()
+
 
     # Use the externally-controlled step count to render fields
     sc = int(st.session_state.get("step_count", 3))
