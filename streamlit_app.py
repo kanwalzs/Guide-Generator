@@ -345,6 +345,13 @@ st.markdown(
         background: var(--white) !important;
         color: var(--text-dark) !important;
       }
+      /* Force darker text inside select value and labels */
+      .stSelectbox [data-baseweb="select"] div,
+      .stSelectbox [data-baseweb="select"] span,
+      .stMultiSelect [data-baseweb="select"] div,
+      .stMultiSelect [data-baseweb="select"] span {
+        color: var(--text-dark) !important;
+      }
 
       /* BaseWeb select internals: make every descendant dark */
       .stSelectbox [data-baseweb="select"] *,
@@ -406,11 +413,13 @@ st.markdown('<h1>Snowflake Guide Generator</h1>', unsafe_allow_html=True)
 # Controls outside the form so changes re-render step fields immediately
 st.subheader("Process steps")
 st.caption("Change the number to add/remove step fields below.")
-st.number_input(
-    "Number of steps",
-    min_value=1, max_value=20, value=int(st.session_state.get("step_count", 3)),
-    step=1, key="step_count"
-)
+_col_step_left, _col_step_right = st.columns([1, 2], gap="large")
+with _col_step_left:
+    st.number_input(
+        "Number of steps",
+        min_value=1, max_value=20, value=int(st.session_state.get("step_count", 3)),
+        step=1, key="step_count"
+    )
 
 # Preload categories
 categories_map = fetch_category_map()
@@ -461,8 +470,7 @@ with st.form("guide_form"):
             key="assets_other",
         )
 
-    with col_right:
-        # Top-right controls: Content Type + Feature toggle
+        # Publishing Options at the bottom of metadata
         CONTENT_TYPE_OPTIONS = {
             # Reference list; extend as needed based on approved taxonomy
             "Quickstart": "snowflake-site:taxonomy/solution-center/certification/quickstart",
@@ -477,6 +485,7 @@ with st.form("guide_form"):
         )
         feature_flag = st.checkbox("Feature this guide", key="meta_feature")
 
+    with col_right:
         st.subheader("Guide Content")
         guide_title = st.text_input("Guide Title (H1)", placeholder="Getting Started with ...", key="content_title").strip()
         overview = st.text_area("Overview", height=140, key="content_overview")
