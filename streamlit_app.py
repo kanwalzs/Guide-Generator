@@ -321,6 +321,7 @@ st.markdown(
       /* BaseWeb select internals: make every descendant dark */
       .stSelectbox [data-baseweb="select"] *,
       .stMultiSelect [data-baseweb="select"] * {
+        background: var(--white) !important;
         color: var(--text-dark) !important;
       }
       
