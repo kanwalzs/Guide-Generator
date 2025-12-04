@@ -300,6 +300,13 @@ st.markdown(
         color: var(--text-light) !important;
       }
       a { color: var(--accent) !important; }
+      /* Small section label to mimic input headings */
+      .section-label {
+        color: var(--text-light) !important;
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0 0 0.25rem 0;
+      }
 
       /* Text inputs/areas: white bg, dark text */
       .stTextInput > div > div,
@@ -503,7 +510,7 @@ st.markdown(
 st.markdown('<h1>Snowflake Guide Generator</h1>', unsafe_allow_html=True)
 
 # Controls outside the form so changes re-render step fields immediately
-st.subheader("Change the number to add/remove step fields below")
+st.markdown('<div class="section-label">Change the number to add/remove step fields below</div>', unsafe_allow_html=True)
 _col_step_left, _col_step_right = st.columns([1, 2], gap="large")
 with _col_step_left:
     st.number_input(
