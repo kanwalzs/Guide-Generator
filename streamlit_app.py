@@ -414,6 +414,36 @@ st.markdown(
         background: var(--white) !important;
         color: var(--text-dark) !important;
       }
+      /* BaseWeb menu portal: ensure white bg and dark text in the dropdown list */
+      .stSelectbox [data-baseweb="menu"],
+      .stMultiSelect [data-baseweb="menu"] {
+        background: var(--white) !important;
+        color: var(--text-dark) !important;
+      }
+      .stSelectbox [data-baseweb="menu"] [role="option"],
+      .stMultiSelect [data-baseweb="menu"] [role="option"] {
+        color: var(--text-dark) !important;
+      }
+      .stSelectbox [data-baseweb="menu"] [role="option"] *,
+      .stMultiSelect [data-baseweb="menu"] [role="option"] * {
+        color: var(--text-dark) !important;
+      }
+      /* Selected/hover item in the dropdown */
+      .stSelectbox [data-baseweb="menu"] [aria-selected="true"],
+      .stMultiSelect [data-baseweb="menu"] [aria-selected="true"],
+      .stSelectbox [data-baseweb="menu"] [role="option"][data-baseweb="hovered"],
+      .stMultiSelect [data-baseweb="menu"] [role="option"][data-baseweb="hovered"] {
+        background: #E6F3FF !important;
+        color: #0B2E59 !important;
+      }
+      /* Icons/carets/checkmarks in menu */
+      .stSelectbox [data-baseweb="menu"] svg, 
+      .stSelectbox [data-baseweb="menu"] svg *, 
+      .stMultiSelect [data-baseweb="menu"] svg, 
+      .stMultiSelect [data-baseweb="menu"] svg * {
+        fill: var(--text-dark) !important;
+        stroke: var(--text-dark) !important;
+      }
       /* Note callout styling */
       .note-callout {
         background: #E6F3FF;
