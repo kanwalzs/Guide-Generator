@@ -18,6 +18,22 @@ CATEGORIES_FALLBACK = {
     "Iceberg Tables": "snowflake-site:taxonomy/products/iceberg-tables",
     "Snowpipe Streaming": "snowflake-site:taxonomy/products/snowpipe-streaming",
     "Native Apps": "snowflake-site:taxonomy/products/native-apps",
+    "External Tables": "snowflake-site:taxonomy/products/external-tables",
+    "External Functions": "snowflake-site:taxonomy/products/external-functions",
+    "Materialized Views": "snowflake-site:taxonomy/products/materialized-views",
+    "Vector Data Type": "snowflake-site:taxonomy/products/vector-data-type",
+    "Query Acceleration": "snowflake-site:taxonomy/products/query-acceleration",
+    "Search Optimization": "snowflake-site:taxonomy/products/search-optimization",
+    "Time Travel": "snowflake-site:taxonomy/products/time-travel",
+    "Streams & Tasks": "snowflake-site:taxonomy/products/streams-tasks",
+    "Dynamic Tables": "snowflake-site:taxonomy/products/dynamic-tables",
+    "Snowpark ML": "snowflake-site:taxonomy/products/snowpark-ml",
+    "Geo Spatial": "snowflake-site:taxonomy/products/geo-spatial",
+    "Data Sharing": "snowflake-site:taxonomy/products/data-sharing",
+    "Data Masking": "snowflake-site:taxonomy/products/data-masking",
+    "Data Classification": "snowflake-site:taxonomy/products/data-classification",
+    "Document AI": "snowflake-site:taxonomy/products/document-ai",
+    "Alerts": "snowflake-site:taxonomy/products/alerts",
 }
 
 IMAGE_CT_RE = re.compile(r"image/(png|jpeg|jpg|gif|svg|webp|bmp|x-icon)", re.I)
@@ -289,25 +305,7 @@ st.markdown(
       .stMultiSelect [data-baseweb="select"] * {
         color: var(--text-dark) !important;
       }
-       /* Ensure ALL selects (incl. Language) are white bg with dark text */
-      .stSelectbox [data-baseweb="select"],
-      .stSelectbox [data-baseweb="select"] > div,
-      .stSelectbox div[role="combobox"] {
-        background: var(--white) !important;
-        color: var(--text-dark) !important;
-      }
-      .stSelectbox [data-baseweb="select"] * {
-        color: var(--text-dark) !important;
-      }
-      .stSelectbox [data-baseweb="select"] input {
-        background: var(--white) !important;
-        color: var(--text-dark) !important;
-      }
-      .stSelectbox input::placeholder { color: var(--text-dark) !important; opacity: 1 !important; }
-      ul[role="listbox"], ul[role="listbox"] li, ul[role="listbox"] li * {
-        background: var(--white) !important;
-        color: var(--text-dark) !important;
-      }
+      
       /* Input element inside select combobox */
       .stSelectbox [data-baseweb="select"] input,
       .stMultiSelect [data-baseweb="select"] input {
