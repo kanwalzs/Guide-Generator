@@ -421,6 +421,16 @@ st.markdown(
         background: var(--white) !important;
         color: var(--text-dark) !important;
       }
+      /* Popover container that wraps the menu */
+      .stSelectbox [data-baseweb="popover"],
+      .stMultiSelect [data-baseweb="popover"] {
+        background: var(--white) !important;
+        color: var(--text-dark) !important;
+      }
+      .stSelectbox [data-baseweb="popover"] *,
+      .stMultiSelect [data-baseweb="popover"] * {
+        color: var(--text-dark) !important;
+      }
       .stSelectbox [data-baseweb="menu"] [role="option"],
       .stMultiSelect [data-baseweb="menu"] [role="option"] {
         color: var(--text-dark) !important;
@@ -434,6 +444,12 @@ st.markdown(
       .stMultiSelect [data-baseweb="menu"] [aria-selected="true"],
       .stSelectbox [data-baseweb="menu"] [role="option"][data-baseweb="hovered"],
       .stMultiSelect [data-baseweb="menu"] [role="option"][data-baseweb="hovered"] {
+        background: #E6F3FF !important;
+        color: #0B2E59 !important;
+      }
+      /* Ensure non-selected hovered still dark on white if theme interferes */
+      .stSelectbox [data-baseweb="menu"] [role="option"]:hover,
+      .stMultiSelect [data-baseweb="menu"] [role="option"]:hover {
         background: #E6F3FF !important;
         color: #0B2E59 !important;
       }
