@@ -377,6 +377,14 @@ st.markdown(
       .stMultiSelect [data-baseweb="select"] * {
         color: var(--text-dark) !important;
       }
+      /* Global enforcement for any BaseWeb select anywhere (handles portal rendering) */
+      [data-baseweb="select"],
+      [data-baseweb="select"] * {
+        background-color: var(--white) !important;
+        color: var(--text-dark) !important;
+        fill: var(--text-dark) !important;
+        stroke: var(--text-dark) !important;
+      }
       /* Selected product tags (chips) */
       .stMultiSelect [data-baseweb="tag"] {
         background: #E6F3FF !important;     /* Snowflake light blue */
@@ -421,6 +429,11 @@ st.markdown(
         background: var(--white) !important;
         color: var(--text-dark) !important;
       }
+      /* Global menu (in case of portal to body) */
+      [data-baseweb="menu"] {
+        background: var(--white) !important;
+        color: var(--text-dark) !important;
+      }
       /* Popover container that wraps the menu */
       .stSelectbox [data-baseweb="popover"],
       .stMultiSelect [data-baseweb="popover"] {
@@ -437,6 +450,11 @@ st.markdown(
       }
       .stSelectbox [data-baseweb="menu"] [role="option"] *,
       .stMultiSelect [data-baseweb="menu"] [role="option"] * {
+        color: var(--text-dark) !important;
+      }
+      /* Global option text */
+      [data-baseweb="menu"] [role="option"],
+      [data-baseweb="menu"] [role="option"] * {
         color: var(--text-dark) !important;
       }
       /* Selected/hover item in the dropdown */
