@@ -322,6 +322,14 @@ st.markdown(
       }
       /* Hide default per-file size hint text under uploader */
       [data-testid="stFileUploader"] small { display: none !important; }
+      /* Make the 'Browse files' control white with dark text */
+      [data-testid="stFileUploader"] button,
+      [data-testid="stFileUploader"] [role="button"],
+      [data-testid="stFileUploader"] [data-baseweb="button"] {
+        background-color: var(--white) !important;
+        color: var(--text-dark) !important;
+        border: 1px solid #DFE3E8 !important;
+      }
 
       /* Buttons */
       .stButton>button, .stDownloadButton>button {
@@ -495,14 +503,13 @@ st.markdown(
 st.markdown('<h1>Snowflake Guide Generator</h1>', unsafe_allow_html=True)
 
 # Controls outside the form so changes re-render step fields immediately
-st.subheader("Process steps")
-st.caption("Change the number to add/remove step fields below.")
+st.subheader("Change the number to add/remove step fields below")
 _col_step_left, _col_step_right = st.columns([1, 2], gap="large")
 with _col_step_left:
     st.number_input(
-        "Number of steps",
+        "",
         min_value=1, max_value=20, value=int(st.session_state.get("step_count", 3)),
-        step=1, key="step_count"
+        step=1, key="step_count", label_visibility="collapsed"
     )
 
 # Preload categories
@@ -556,9 +563,11 @@ with st.form("guide_form"):
 
         # Publishing Options at the bottom of metadata
         CONTENT_TYPE_OPTIONS = {
-            # Reference list; extend as needed based on approved taxonomy
+            # Full Content Type list
+            "Community Solution": "snowflake-site:taxonomy/solution-center/certification/community-sourced",
+            "Partner Solution": "snowflake-site:taxonomy/solution-center/certification/partner-solution",
+            "Certified Solution": "snowflake-site:taxonomy/solution-center/certification/certified-solution",
             "Quickstart": "snowflake-site:taxonomy/solution-center/certification/quickstart",
-            "Certified Solution": "snowflake-site:taxonomy/technical/certified-solution",
         }
         st.subheader("Publishing Options")
         content_type_choice = st.selectbox(
