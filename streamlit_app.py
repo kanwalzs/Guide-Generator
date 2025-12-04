@@ -299,8 +299,8 @@ st.markdown(
 
       /* File uploader: white bg, dark text */
       [data-testid="stFileUploader"] section div {
-        background-color: var(--white) !important;
-        color: var(--text-dark) !important;
+        background-color: var(--dark) !important;
+        color: var(--text-light) !important;
       }
 
       /* Buttons */
@@ -308,6 +308,15 @@ st.markdown(
         background-color: var(--accent) !important;
         color: var(--bg) !important;
         border: none !important;
+      }
+      /* Submit button (Generate Guide) - larger and light blue */
+      .stFormSubmitButton>button {
+        background-color: #5EC8F8 !important;
+        color: #0B1220 !important;
+        font-weight: 600 !important;
+        padding: 0.6rem 1.1rem !important;
+        font-size: 1rem !important;
+        border-radius: 8px !important;
       }
 
       /* SELECT/MULTISELECT: FORCE DARKER TEXT */
@@ -323,6 +332,15 @@ st.markdown(
       .stSelectbox [data-baseweb="select"] *,
       .stMultiSelect [data-baseweb="select"] * {
         color: var(--text-dark) !important;
+      }
+      /* Ensure select containers are white */
+      .stSelectbox div[data-baseweb="select"],
+      .stSelectbox div[data-baseweb="select"] > div,
+      .stSelectbox div[role="combobox"],
+      .stMultiSelect div[data-baseweb="select"],
+      .stMultiSelect div[data-baseweb="select"] > div,
+      .stMultiSelect div[role="combobox"] {
+        background-color: var(--white) !important;
       }
       
       /* Input element inside select combobox */
@@ -345,6 +363,15 @@ st.markdown(
       ul[role="listbox"] li * {
         background: var(--white) !important;
         color: var(--text-dark) !important;
+      }
+      /* Note callout styling */
+      .note-callout {
+        background: #E6F3FF;
+        color: #0B2E59;
+        padding: 12px 16px;
+        border-left: 4px solid var(--accent);
+        border-radius: 6px;
+        margin-top: 16px;
       }
     </style>
     """,
@@ -441,7 +468,10 @@ with st.form("guide_form"):
             key="assets_urls",
         )
 
-    submitted = st.form_submit_button("Generate Guide")
+        # Right-align the Generate Guide button
+        btn_spacer, btn_col = st.columns([3, 1])
+        with btn_col:
+            submitted = st.form_submit_button("Generate Guide")
 
 if submitted:
     if not guide_id or not re.match(r"^[a-z0-9][a-z0-9\-]*[a-z0-9]$", guide_id):
@@ -495,5 +525,8 @@ if submitted:
             mime="application/zip"
         )
 
-st.info("Next: unzip into your fork of the sfguides repo at site/sfguides/src/<guide-id>/, modify or update the markdown file as needed, open PR, and submit.  Your guide goes through some validation basic checks which are built in.")
+st.markdown(
+    '<div class="note-callout">Next: unzip into your fork of the sfguides repo at site/sfguides/src/&lt;guide-id&gt;/, modify or update the markdown file as needed, open PR, and submit. Your guide goes through basic validation checks which are built in.</div>',
+    unsafe_allow_html=True,
+)
 
