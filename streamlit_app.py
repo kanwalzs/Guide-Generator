@@ -438,7 +438,7 @@ with st.form("guide_form"):
 
     submitted = st.form_submit_button("Generate Guide")
 
-    
+
     st.subheader("Metadata")
     guide_id = st.text_input("Guide ID (folder and filename, hyphen-case)", placeholder="intro-to-cortex").strip()
     author = st.text_input("Author", placeholder="First Last").strip()
@@ -472,20 +472,6 @@ with st.form("guide_form"):
     need = st.text_area("What You’ll Need (one per line)", height=100)
     build_txt = st.text_input("What You’ll Build", placeholder="Describe the final outcome").strip()
 
-
-    # Use the externally-controlled step count to render fields
-   sc = int(st.session_state.get("step_count", 3))
-steps = []
-for i in range(sc):
-    st.markdown(f"#### Step {i+1}")
-    title_key = f"step_title_{i}"
-    content_key = f"step_content_{i}"
-    st.text_input(f"Step {i+1} title", key=title_key)
-    st.text_area(f"Step {i+1} content", key=content_key, height=140)
-    steps.append({
-        "title": st.session_state.get(title_key, "").strip(),
-        "content": st.session_state.get(content_key, "").strip()
-    })
 
 
 
