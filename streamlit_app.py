@@ -380,7 +380,7 @@ with st.form("guide_form"):
     )
     auto_categories_list = [categories_map[p] for p in selected_products] if selected_products else [CATEGORIES_FALLBACK["Quickstart"]]
     auto_categories = ", ".join(auto_categories_list)
-        categories_final = auto_categories
+    categories_final = auto_categories
 
 
     # Status (no 'Hidden')
