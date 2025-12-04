@@ -86,10 +86,12 @@ def validate_markdown(md_text, guide_id):
 
 def sanitize_filename(name):
     base = os.path.basename(name)
-    return re.sub(r"[^a-z0-9_.]", "", base.lower().replace("-", "_"))
+    # prefer hyphens, allow . _ -
+    base = base.lower().replace("_", "-")
+    return re.sub(r"[^a-z0-9_.\-]", "", base)
 
 
-def write_guide_tree(base_dir, guide_id, md_text, image_files, other_files, url_files):
+def write_guide_tree(base_dir, guide_id, md_text, image_files, other_files):
     guide_dir = os.path.join(base_dir, "site", "sfguides", "src", guide_id)
     assets_dir = os.path.join(guide_dir, "assets")
     os.makedirs(assets_dir, exist_ok=True)
@@ -126,25 +128,6 @@ def write_guide_tree(base_dir, guide_id, md_text, image_files, other_files, url_
             f.write(data)
         saved.append(("assets/" + name, len(data)))
 
-    # URL downloads (any type), cap at 10MB, skip .md
-    for url in url_files or []:
-        try:
-            r = requests.get(url, timeout=10, stream=True)
-            r.raise_for_status()
-            data = r.content
-            if len(data) > 10_000_000:
-                continue
-            guessed = os.path.basename(urlparse(url).path) or "download"
-            name = sanitize_filename(guessed)
-            if not name or name.endswith(".md"):
-                continue
-            p = os.path.join(assets_dir, name)
-            with open(p, "wb") as f:
-                f.write(data)
-            saved.append(("assets/" + name, len(data)))
-        except Exception:
-            continue
-
     return guide_dir, saved
 
 
@@ -158,6 +141,27 @@ def zipdir(path):
                 zf.write(full, rel)
     buf.seek(0)
     return buf
+
+
+def convert_img_tags_to_markdown(text: str) -> str:
+    """Convert basic <img src="..." alt="..."> HTML to Markdown image syntax."""
+    if not text:
+        return text
+    # alt and src
+    text = re.sub(
+        r'<img[^>]*alt=["\']([^"\']*)["\'][^>]*src=["\']([^"\']+)["\'][^>]*>',
+        r'![\1](\2)',
+        text,
+        flags=re.IGNORECASE,
+    )
+    # src only
+    text = re.sub(
+        r'<img[^>]*src=["\']([^"\']+)["\'][^>]*>',
+        r'![](\1)',
+        text,
+        flags=re.IGNORECASE,
+    )
+    return text
 
 
 def fetch_category_map():
@@ -197,6 +201,19 @@ def fetch_category_map():
 
 def build_guide_markdown(meta, sections):
     # Metadata block at top (kept within first 50 lines for CI)
+    # Sanitize any HTML image tags into markdown
+    sections = dict(sections)
+    sections["overview"] = convert_img_tags_to_markdown(sections.get("overview") or "")
+    sections["build"] = convert_img_tags_to_markdown(sections.get("build") or "")
+    sanitized_steps = []
+    for s in sections.get("steps") or []:
+        sanitized_steps.append({
+            "title": (s.get("title") or "").strip(),
+            "content": convert_img_tags_to_markdown(s.get("content") or "")
+        })
+    sections["steps"] = sanitized_steps
+    sections["conclusion"] = convert_img_tags_to_markdown(sections.get("conclusion") or "")
+
     header = [
         f'author: {meta["author"]}',
         f'id: {meta["id"]}',
@@ -278,6 +295,7 @@ st.markdown(
       .stApp { background: var(--bg); color: var(--text-light); }
       .block-container { max-width: 1400px; padding-left: 2rem; padding-right: 2rem; }
       h1, h2, h3 { color: var(--accent) !important; }
+      h4 { color: var(--text-light) !important; }
       body, p, li, span, label, [data-testid="stMarkdownContainer"] {
         color: var(--text-light) !important;
       }
@@ -332,6 +350,12 @@ st.markdown(
       .stSelectbox [data-baseweb="select"] *,
       .stMultiSelect [data-baseweb="select"] * {
         color: var(--text-dark) !important;
+      }
+      /* Selected product tags (chips) */
+      .stMultiSelect [data-baseweb="tag"] {
+        background: #E6F3FF !important;     /* Snowflake light blue */
+        color: #0B2E59 !important;
+        border-color: #5EC8F8 !important;
       }
       /* Ensure select containers are white */
       .stSelectbox div[data-baseweb="select"],
@@ -419,12 +443,40 @@ with st.form("guide_form"):
         st.text("Status: Published")
         status = "Published"
 
-        environments = st.text_input("Environments", value="web", key="meta_env").strip()
+        environments = st.text_input("Environments", value="web (default)", key="meta_env").strip()
         feedback = st.text_input("Feedback link", value="https://github.com/Snowflake-Labs/sfguides/issues", key="meta_feedback").strip()
         fork_repo = st.text_input("Fork repo link", value="<repo>", key="meta_forkrepo").strip()
         open_in = st.text_input("Open in Snowflake (if template or deeplink is available)", value="<deeplink or remove>", key="meta_openin").strip()
 
+        st.subheader("Assets")
+        image_uploads = st.file_uploader(
+            "Upload images (≤ 1MB each; use hyphens in filenames; saved to /assets)",
+            type=["png","jpg","jpeg","gif","svg","webp","bmp","ico"],
+            accept_multiple_files=True,
+            key="assets_images",
+        )
+        other_uploads = st.file_uploader(
+            "Upload additional files (non-images; will be placed in assets/, ≤ 10MB each)",
+            accept_multiple_files=True,
+            key="assets_other",
+        )
+
     with col_right:
+        # Top-right controls: Content Type + Feature toggle
+        CONTENT_TYPE_OPTIONS = {
+            # Reference list; extend as needed based on approved taxonomy
+            "Quickstart": "snowflake-site:taxonomy/solution-center/certification/quickstart",
+            "Certified Solution": "snowflake-site:taxonomy/technical/certified-solution",
+        }
+        st.subheader("Publishing Options")
+        content_type_choice = st.selectbox(
+            "Content Type",
+            list(CONTENT_TYPE_OPTIONS.keys()),
+            index=0,
+            key="meta_content_type",
+        )
+        feature_flag = st.checkbox("Feature this guide", key="meta_feature")
+
         st.subheader("Guide Content")
         guide_title = st.text_input("Guide Title (H1)", placeholder="Getting Started with ...", key="content_title").strip()
         overview = st.text_area("Overview", height=140, key="content_overview")
@@ -450,23 +502,15 @@ with st.form("guide_form"):
         conclusion = st.text_area("Concluding Statement", height=120, key="content_conclusion")
         resources = st.text_area("Related resources (one per line; optional 'Label | URL')", height=100, key="content_resources")
 
-        st.subheader("Assets")
-        image_uploads = st.file_uploader(
-            "Upload images (<= 1MB each; lowercase_underscores.png)",
-            type=["png","jpg","jpeg","gif","svg","webp","bmp","ico"],
-            accept_multiple_files=True,
-            key="assets_images",
-        )
-        other_uploads = st.file_uploader(
-            "Upload additional files (non-images; will be placed in assets/, ≤ 10MB each)",
-            accept_multiple_files=True,
-            key="assets_other",
-        )
-        url_block = st.text_area(
-            "Additional asset URLs (one per line; downloaded into assets/, ≤ 10MB each)",
-            placeholder="https://example.com/file.csv\nhttps://example.com/archive.zip",
-            key="assets_urls",
-        )
+        # Merge Content Type and Featured tag into Categories
+        selected_ct_path = CONTENT_TYPE_OPTIONS.get(content_type_choice, "")
+        extra_tags = []
+        if selected_ct_path:
+            extra_tags.append(selected_ct_path)
+        if feature_flag:
+            extra_tags.append("snowflake-site:taxonomy/technical/featured")
+        if extra_tags:
+            categories_final = ", ".join([categories_final] + extra_tags)
 
         # Right-align the Generate Guide button
         btn_spacer, btn_col = st.columns([3, 1])
@@ -511,9 +555,8 @@ if submitted:
     else:
         st.success("Local validation passed (key checks).")
 
-    url_list = [u.strip() for u in (url_block or "").splitlines() if u.strip()]
     with tempfile.TemporaryDirectory() as td:
-        guide_dir, saved = write_guide_tree(td, guide_id, md, image_uploads or [], other_uploads or [], url_list)
+        guide_dir, saved = write_guide_tree(td, guide_id, md, image_uploads or [], other_uploads or [])
         if saved:
             st.caption("Saved assets: " + ", ".join([f"{n} ({s} bytes)" for n,s in saved]))
         buf = zipdir(guide_dir)
